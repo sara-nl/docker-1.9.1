@@ -64,6 +64,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		flIpcMode         = cmd.String([]string{"-ipc"}, "", "IPC namespace to use")
 		flRestartPolicy   = cmd.String([]string{"-restart"}, "", "Restart policy to apply when a container exits")
 		flReadonlyRootfs  = cmd.Bool([]string{"-read-only"}, false, "Mount the container's root filesystem as read only")
+		flIp4Address      = cmd.String([]string{"-ip-address"}, "", "Container IP4 Address (e.g. 10.2.3.4/32)")
 	)
 
 	cmd.Var(&flAttach, []string{"a", "-attach"}, "Attach to STDIN, STDOUT or STDERR.")
@@ -288,6 +289,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		MacAddress:      *flMacAddress,
 		Entrypoint:      entrypoint,
 		WorkingDir:      *flWorkingDir,
+		Ip4Address:      *flIp4Address,
 	}
 
 	hostConfig := &HostConfig{
@@ -391,7 +393,7 @@ func parseKeyValueOpts(opts opts.ListOpts) ([]utils.KeyValuePair, error) {
 func parseNetMode(netMode string) (NetworkMode, error) {
 	parts := strings.Split(netMode, ":")
 	switch mode := parts[0]; mode {
-	case "bridge", "none", "host":
+	case "bridge", "none", "host", "routed":
 	case "container":
 		if len(parts) < 2 || parts[1] == "" {
 			return "", fmt.Errorf("invalid container format container:<name|id>")

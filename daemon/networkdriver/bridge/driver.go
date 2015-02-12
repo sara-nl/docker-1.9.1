@@ -503,13 +503,17 @@ func Allocate(job *engine.Job) engine.Status {
 		mac           net.HardwareAddr
 		err           error
 		id            = job.Args[0]
-		requestedIP   = net.ParseIP(job.Getenv("RequestedIP"))
+		routedNetwork = job.GetenvBool("RoutedNetworking")
+		requestedIP   = job.Getenv("RequestedIP")
 		requestedIPv6 = net.ParseIP(job.Getenv("RequestedIPv6"))
 		globalIPv6    net.IP
 	)
-
-	if requestedIP != nil {
-		ip, err = ipallocator.RequestIP(bridgeIPv4Network, requestedIP)
+	if routedNetwork {
+		return allocateInterfaceWithStaticIP(job, requestedIP)
+	}
+	
+	if  parsedIP := net.ParseIP(requestedIP); parsedIP != nil {
+		ip, err = ipallocator.RequestIP(bridgeIPv4Network, parsedIP)
 	} else {
 		ip, err = ipallocator.RequestIP(bridgeIPv4Network, nil)
 	}
@@ -614,10 +618,15 @@ func AllocatePort(job *engine.Job) engine.Status {
 		hostIP        = job.Getenv("HostIP")
 		hostPort      = job.GetenvInt("HostPort")
 		containerPort = job.GetenvInt("ContainerPort")
+		routedNetwork = job.GetenvBool("RoutedNetworking")
 		proto         = job.Getenv("Proto")
 		network       = currentInterfaces.Get(id)
 	)
 
+	if routedNetwork {
+		return engine.StatusOK
+	}
+	
 	if hostIP != "" {
 		ip = net.ParseIP(hostIP)
 		if ip == nil {
@@ -687,8 +696,13 @@ func LinkContainers(job *engine.Job) engine.Status {
 		parentIP     = job.Getenv("ParentIP")
 		ignoreErrors = job.GetenvBool("IgnoreErrors")
 		ports        = job.GetenvList("Ports")
+		routedNetwork = job.GetenvBool("RoutedNetworking")
 	)
 
+	if routedNetwork {
+		return engine.StatusOK
+	}
+	
 	switch action {
 	case "-A":
 		nfAction = iptables.Append
@@ -716,5 +730,41 @@ func LinkContainers(job *engine.Job) engine.Status {
 			return job.Error(err)
 		}
 	}
+	return engine.StatusOK
+}
+
+func allocateInterfaceWithStaticIP(job *engine.Job, requestedIP string) engine.Status {
+	var (
+		ip          net.IP
+		ipNet       *net.IPNet
+		err         error
+		id			= job.Args[0]
+	)
+
+	if requestedIP != "" {
+		ip, ipNet, err = net.ParseCIDR(requestedIP)
+	}
+	if err != nil {
+		return job.Error(err)
+	}
+
+	size, _ := ipNet.Mask.Size()
+	
+	if size != 32 {
+		return job.Errorf("Routing prefix of %s not supported. Use /32 instead.", requestedIP)
+	}
+
+	out := engine.Env{}
+	out.Set("IP", ip.String())
+	out.Set("Mask", ipNet.Mask.String())
+	out.Set("MacAddress", generateMacAddr(ip).String())
+	out.SetInt("IPPrefixLen", size)
+
+	currentInterfaces.Set(id, &networkInterface{
+		IP: ip,
+	})
+
+	out.WriteTo(job.Stdout)
+
 	return engine.StatusOK
 }

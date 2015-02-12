@@ -8,6 +8,17 @@ import (
 	"github.com/docker/libcontainer/netlink"
 )
 
+func AddDefaultRoute(ifaceName string) error {
+	return AddRoute("0.0.0.0/0", "", "", ifaceName)
+}
+
+func AddRoute(dest string, src string, gw string, ifName string) error {
+	if _, err := net.InterfaceByName(ifName); err != nil {
+		return err
+	}
+	return netlink.AddRoute(dest, src, gw, ifName)
+}
+
 func InterfaceUp(name string) error {
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
