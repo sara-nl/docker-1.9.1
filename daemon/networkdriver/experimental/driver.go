@@ -118,8 +118,6 @@ func Release(job *engine.Job) engine.Status {
 		return job.Errorf("No network information to release for %s", id)
 	}
 
-	// TODO Remove default route via the interface
-
 	return engine.StatusOK
 }
 
