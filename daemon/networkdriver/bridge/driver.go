@@ -504,10 +504,11 @@ func Allocate(job *engine.Job) engine.Status {
 		err           error
 		id            = job.Args[0]
 		requestedIP   = net.ParseIP(job.Getenv("RequestedIP"))
+		routedNetworking = job.Getenv("RoutedNetworking")
 		requestedIPv6 = net.ParseIP(job.Getenv("RequestedIPv6"))
 		globalIPv6    net.IP
 	)
-
+	log.Infof("Routed Networking: %s", routedNetworking)
 	if requestedIP != nil {
 		ip, err = ipallocator.RequestIP(bridgeIPv4Network, requestedIP)
 	} else {

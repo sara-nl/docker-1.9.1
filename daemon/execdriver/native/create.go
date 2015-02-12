@@ -101,12 +101,18 @@ func (d *driver) createNetwork(container *libcontainer.Config, c *execdriver.Com
 	}
 
 	if c.Network.Interface != nil {
+		networkType := "veth"
+
+		if c.Network.RoutedNetworking {
+			networkType = "routed"
+		}
+
 		vethNetwork := libcontainer.Network{
 			Mtu:        c.Network.Mtu,
 			Address:    fmt.Sprintf("%s/%d", c.Network.Interface.IPAddress, c.Network.Interface.IPPrefixLen),
 			MacAddress: c.Network.Interface.MacAddress,
 			Gateway:    c.Network.Interface.Gateway,
-			Type:       "veth",
+			Type:       networkType,
 			Bridge:     c.Network.Interface.Bridge,
 			VethPrefix: "veth",
 		}

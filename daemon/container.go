@@ -208,15 +208,18 @@ func populateCommand(c *Container, env []string) error {
 		Mtu:       c.daemon.config.Mtu,
 		Interface: nil,
 	}
-
+	log.Debugf("Experimental Networking enabled: %s", c.daemon.config.ExperimentalNetwork)
 	parts := strings.SplitN(string(c.hostConfig.NetworkMode), ":", 2)
 	switch parts[0] {
 	case "none":
 	case "host":
 		en.HostNetworking = true
-	case "bridge", "": // empty string to support existing containers
+	case "bridge", "routed", "": // empty string to support existing containers
 		if !c.Config.NetworkDisabled {
 			network := c.NetworkSettings
+			if parts[0] == "routed" {
+				en.RoutedNetworking = true
+			}
 			en.Interface = &execdriver.NetworkInterface{
 				Gateway:              network.Gateway,
 				Bridge:               network.Bridge,
@@ -490,6 +493,8 @@ func (container *Container) AllocateNetwork() error {
 	)
 
 	job := eng.Job("allocate_interface", container.ID)
+	job.SetenvBool("RoutedNetworking", container.Config.RoutedNetworking)
+	job.Setenv("RequestedIP", container.Config.Ip4Address)
 	job.Setenv("RequestedMac", container.Config.MacAddress)
 	if env, err = job.Stdout.AddEnv(); err != nil {
 		return err
