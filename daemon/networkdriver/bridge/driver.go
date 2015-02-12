@@ -554,7 +554,7 @@ func linkLocalIPv6FromMac(mac string) (string, error) {
 }
 
 // Allocate a network interface
-func Allocate(id, requestedMac, requestedIP, requestedIPv6 string) (*network.Settings, error) {
+func Allocate(id, requestedMac, requestedIP, requestedIPv6 string, isRoutedNetwork bool) (*network.Settings, error) {
 	var (
 		ip            net.IP
 		mac           net.HardwareAddr
@@ -563,6 +563,10 @@ func Allocate(id, requestedMac, requestedIP, requestedIPv6 string) (*network.Set
 		defaultGWIPv4 net.IP
 		defaultGWIPv6 net.IP
 	)
+
+	if isRoutedNetwork {
+		return allocateInterfaceWithStaticIP(id, requestedIP)
+	}
 
 	ip, err = ipAllocator.RequestIP(bridgeIPv4Network, net.ParseIP(requestedIP))
 	if err != nil {
@@ -665,7 +669,7 @@ func Release(id string) {
 }
 
 // Allocate an external port and map it to the interface
-func AllocatePort(id string, port nat.Port, binding nat.PortBinding) (nat.PortBinding, error) {
+func AllocatePort(id string, port nat.Port, binding nat.PortBinding, isRoutedNetwork bool) (nat.PortBinding, error) {
 	var (
 		ip            = defaultBindingIP
 		proto         = port.Proto()
@@ -673,6 +677,10 @@ func AllocatePort(id string, port nat.Port, binding nat.PortBinding) (nat.PortBi
 		network       = currentInterfaces.Get(id)
 	)
 
+	if isRoutedNetwork {
+		return nat.PortBinding{}, nil
+	}
+	
 	if binding.HostIp != "" {
 		ip = net.ParseIP(binding.HostIp)
 		if ip == nil {
@@ -736,9 +744,13 @@ func AllocatePort(id string, port nat.Port, binding nat.PortBinding) (nat.PortBi
 }
 
 //TODO: should it return something more than just an error?
-func LinkContainers(action, parentIP, childIP string, ports []nat.Port, ignoreErrors bool) error {
+func LinkContainers(action, parentIP, childIP string, ports []nat.Port, ignoreErrors bool, isRoutedNetwork bool) error {
 	var nfAction iptables.Action
 
+	if isRoutedNetwork {
+		return nil
+	}
+	
 	switch action {
 	case "-A":
 		nfAction = iptables.Append
@@ -766,4 +778,39 @@ func LinkContainers(action, parentIP, childIP string, ports []nat.Port, ignoreEr
 		}
 	}
 	return nil
+}
+
+func allocateInterfaceWithStaticIP(id, requestedIP string) (*network.Settings, error) {
+	var (
+		ip          net.IP
+		ipNet       *net.IPNet
+		err         error
+	)
+	
+	logrus.Warnf("Requesting ip: %s", requestedIP)
+	if requestedIP != "" {
+		ip, ipNet, err = net.ParseCIDR(requestedIP)
+	}
+	if err != nil {
+		return &network.Settings{}, err
+	}
+	logrus.Warnf("Requesting ipNet: %s", ipNet)
+	size, _ := ipNet.Mask.Size()
+	
+	if size != 32 {
+		return &network.Settings{}, fmt.Errorf("Routing prefix of %s not supported yet. Use /32 instead.", requestedIP)
+	}
+	
+	currentInterfaces.Set(id, &networkInterface{
+		IP: ip,
+	})
+
+	networkSettings := &network.Settings{
+		IPAddress:            ip.String(),
+//		Mask:                 ipNet.Mask.String(),
+		MacAddress:           generateMacAddr(ip).String(),
+		IPPrefixLen:          size,
+	}
+	
+	return networkSettings, nil
 }

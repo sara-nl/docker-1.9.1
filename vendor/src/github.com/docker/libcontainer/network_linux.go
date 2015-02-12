@@ -17,6 +17,7 @@ import (
 var strategies = map[string]networkStrategy{
 	"veth":     &veth{},
 	"loopback": &loopback{},
+    "routed":   &Routed{},
 }
 
 // networkStrategy represents a specific network configuration for

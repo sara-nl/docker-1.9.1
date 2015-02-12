@@ -268,9 +268,12 @@ func populateCommand(c *Container, env []string) error {
 	case "none":
 	case "host":
 		en.HostNetworking = true
-	case "bridge", "": // empty string to support existing containers
+	case "bridge", "routed", "": // empty string to support existing containers
 		if !c.Config.NetworkDisabled {
 			network := c.NetworkSettings
+			if c.Config.Ip4Address != "" {
+				en.RoutedNetworking = true
+			}
 			en.Interface = &execdriver.NetworkInterface{
 				Gateway:              network.Gateway,
 				Bridge:               network.Bridge,
@@ -578,7 +581,7 @@ func (container *Container) AllocateNetwork() error {
 		eng = container.daemon.eng
 	)
 
-	networkSettings, err := bridge.Allocate(container.ID, container.Config.MacAddress, "", "")
+	networkSettings, err := bridge.Allocate(container.ID, container.Config.MacAddress, container.Config.Ip4Address, "", mode.IsRouted())
 	if err != nil {
 		return err
 	}
@@ -662,7 +665,7 @@ func (container *Container) RestoreNetwork() error {
 	eng := container.daemon.eng
 
 	// Re-allocate the interface with the same IP and MAC address.
-	if _, err := bridge.Allocate(container.ID, container.NetworkSettings.MacAddress, container.NetworkSettings.IPAddress, ""); err != nil {
+	if _, err := bridge.Allocate(container.ID, container.NetworkSettings.MacAddress, container.NetworkSettings.IPAddress, "", mode.IsRouted()); err != nil {
 		return err
 	}
 
@@ -1458,7 +1461,7 @@ func (container *Container) allocatePort(eng *engine.Engine, port nat.Port, bind
 	}
 
 	for i := 0; i < len(binding); i++ {
-		b, err := bridge.AllocatePort(container.ID, port, binding[i])
+		b, err := bridge.AllocatePort(container.ID, port, binding[i], container.hostConfig.NetworkMode.IsRouted())
 		if err != nil {
 			return err
 		}

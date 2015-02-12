@@ -121,7 +121,9 @@ type Config struct {
 	Entrypoint      *Entrypoint
 	NetworkDisabled bool
 	MacAddress      string
+	RoutedNetworking bool
 	OnBuild         []string
+	Ip4Address       string
 	Labels          map[string]string
 }
 
