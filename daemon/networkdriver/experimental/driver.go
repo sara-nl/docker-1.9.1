@@ -77,7 +77,7 @@ func Allocate(job *engine.Job) engine.Status {
 	if requestedIP != "" {
 		ip, ipNet, err = net.ParseCIDR(requestedIP)
 	} else {
-		job.Error(errors.New("No IP address requested. use --ip-address to specify a static IP address."))
+		return job.Error(errors.New("No IP address requested. use --ip-address to specify a static IP address."))
 	}
 	if err != nil {
 		return job.Error(err)
@@ -105,7 +105,7 @@ func Allocate(job *engine.Job) engine.Status {
 	return engine.StatusOK
 }
 
-// Release an interface for a  selected ip
+// Release an interface for a given IP address
 func Release(job *engine.Job) engine.Status {
 	var (
 		id                 = job.Args[0]
