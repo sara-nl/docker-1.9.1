@@ -10,8 +10,6 @@ import (
 // Network interface represents the networking stack of a container
 type networkInterface struct {
 	IP           net.IP
-	IPv6         net.IP
-	PortMappings []net.Addr // there are mappings to the host interfaces
 }
 
 type ifaces struct {
@@ -79,7 +77,7 @@ func Allocate(job *engine.Job) engine.Status {
 	if requestedIP != "" {
 		ip, ipNet, err = net.ParseCIDR(requestedIP)
 	} else {
-		job.Error(errors.New("No ip address requeted. use --ip-address to specify a static api address."))
+		job.Error(errors.New("No IP address requested. use --ip-address to specify a static IP address."))
 	}
 	if err != nil {
 		return job.Error(err)
@@ -122,11 +120,11 @@ func Release(job *engine.Job) engine.Status {
 }
 
 func LinkContainers(job *engine.Job) engine.Status {
-	// Containers not linked
+	// Containers doesn't need to be linked
 	return engine.StatusOK
 }
 
 func AllocatePort(job *engine.Job) engine.Status {
-	// Don't allocate ports
+	// Don't allocate port mappings
 	return engine.StatusOK
 }
