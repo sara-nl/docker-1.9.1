@@ -87,8 +87,6 @@ func mainDaemon() {
 		log.Fatal(err)
 	}
 	daemonCfg.TrustKeyPath = *flTrustKey
-	log.Infof("Experimental Network flag: %s", daemonCfg.ExperimentalNetwork)
-	eng.Hack_SetGlobalVar("experimental_network", daemonCfg.ExperimentalNetwork)
 
 	// Load builtins
 	if err := builtins.Register(eng); err != nil {
