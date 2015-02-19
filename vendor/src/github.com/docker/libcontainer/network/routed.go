@@ -8,13 +8,12 @@ import (
 
 // Strategy that creates a veth pair adding one to the container namespace and assigning a static ip to it. Default
 // routes via the veth pair are added on the host and container, thus routing data in and out the container without
-// relying on NAT or port mappings.
+// relying on NAT.
 type Routed struct {
 }
 
 func (v *Routed) Create(n *Network, nspid int, networkState *NetworkState) error {
 	var (
-		//	bridge     = n.Bridge
 		prefix     = n.VethPrefix
 		txQueueLen = n.TxQueueLen
 	)
