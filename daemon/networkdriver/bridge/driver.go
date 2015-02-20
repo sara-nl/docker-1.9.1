@@ -743,10 +743,7 @@ func allocateInterfaceWithStaticIP(job *engine.Job, requestedIP string) engine.S
 
 	if requestedIP != "" {
 		ip, ipNet, err = net.ParseCIDR(requestedIP)
-	} else {
-		job.Error(errors.New("No IP address requested. use --ip-address to specify a static api address on routed network mode."))
 	}
-	
 	if err != nil {
 		return job.Error(err)
 	}
@@ -754,7 +751,7 @@ func allocateInterfaceWithStaticIP(job *engine.Job, requestedIP string) engine.S
 	size, _ := ipNet.Mask.Size()
 	
 	if size != 32 {
-		job.Error(errors.New("Network mask not supported. Use /32"))
+		return job.Errorf("Routing prefix of %s not supported. Use /32 instead.", requestedIP)
 	}
 
 	out := engine.Env{}

@@ -208,6 +208,7 @@ func populateCommand(c *Container, env []string) error {
 		Mtu:       c.daemon.config.Mtu,
 		Interface: nil,
 	}
+
 	parts := strings.SplitN(string(c.hostConfig.NetworkMode), ":", 2)
 	switch parts[0] {
 	case "none":
@@ -319,7 +320,6 @@ func populateCommand(c *Container, env []string) error {
 }
 
 func (container *Container) Start() (err error) {
-	
 	container.Lock()
 	defer container.Unlock()
 
