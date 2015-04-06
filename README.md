@@ -21,7 +21,7 @@ We provide then a new network mode, called "routed", that doesn't rely on the do
 
 ## How to use it
 
-Start the container using the routed mode and setting the IP4 address with the new parameter ip-address
+Start the container using the routed network mode and setting the IP4 address with the new parameter ip-address
 
     % docker run -ti --net=routed --ip-address=10.1.2.3/32 ubuntu /bin/bash
 
