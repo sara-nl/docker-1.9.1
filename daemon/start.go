@@ -58,6 +58,7 @@ func (daemon *Daemon) setHostConfig(container *Container, hostConfig *runconfig.
 	// Validate the HostConfig binds. Make sure that:
 	// the source exists
 	for _, bind := range hostConfig.Binds {
+		//HERE
 		splitBind := strings.Split(bind, ":")
 		source := splitBind[0]
 

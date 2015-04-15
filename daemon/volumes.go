@@ -154,7 +154,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 	var mounts = make(map[string]*Mount)
 	// Get all the bind mounts
 	for _, spec := range container.hostConfig.Binds {
-		path, mountToPath, writable, err := parseBindMountSpec(spec)
+		path, mountToPath, writable, _, err := parseBindMountSpec(spec)
 		if err != nil {
 			return nil, err
 		}
@@ -210,10 +210,11 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 	return mounts, nil
 }
 
-func parseBindMountSpec(spec string) (string, string, bool, error) {
+func parseBindMountSpec(spec string) (string, string, bool, bool, error) {
 	var (
 		path, mountToPath string
 		writable          bool
+		ceph              bool
 		arr               = strings.Split(spec, ":")
 	)
 
@@ -222,21 +223,23 @@ func parseBindMountSpec(spec string) (string, string, bool, error) {
 		path = arr[0]
 		mountToPath = arr[1]
 		writable = true
+		ceph = false
 	case 3:
 		path = arr[0]
 		mountToPath = arr[1]
-		writable = validMountMode(arr[2]) && arr[2] == "rw"
+		writable, ceph = parseMountOptions(arr[2])
 	default:
-		return "", "", false, fmt.Errorf("Invalid volume specification: %s", spec)
+		return "", "", false, false, fmt.Errorf("Invalid volume specification: %s", spec)
 	}
 
 	if !filepath.IsAbs(path) {
-		return "", "", false, fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
+		return "", "", false, false, fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
 	}
 
 	path = filepath.Clean(path)
 	mountToPath = filepath.Clean(mountToPath)
-	return path, mountToPath, writable, nil
+	fmt.Printf("Volume bind: %s : %s : %s : %s\n", path, mountToPath, writable, ceph)
+	return path, mountToPath, writable, ceph, nil
 }
 
 func parseVolumesFromSpec(spec string) (string, string, error) {
@@ -313,6 +316,23 @@ func validMountMode(mode string) bool {
 	}
 
 	return validModes[mode]
+}
+
+func parseMountOptions(options string) (bool, bool) {
+	var (
+		writable = false
+		ceph = false
+	)
+	for _, option := range strings.Split(options, ",") {
+		if option == "ro" {
+			writable = false
+		} else if option == "rw" {
+			writable = true
+		} else if option == "ceph" {
+			ceph = true
+		}
+	}
+	return writable, ceph
 }
 
 func (container *Container) setupMounts() error {

@@ -25,6 +25,7 @@ const (
 )
 
 func main() {
+	fmt.Println("Well, hello there!")
 	if reexec.Init() {
 		return
 	}
