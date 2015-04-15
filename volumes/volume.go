@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/symlink"
 )
@@ -16,6 +17,8 @@ import (
 type Volume struct {
 	ID          string
 	Path        string
+	CephVolume  string
+	CephDevice  string
 	IsBindMount bool
 	Writable    bool
 	containers  map[string]struct{}
@@ -89,8 +92,14 @@ func (v *Volume) AddContainer(containerId string) {
 func (v *Volume) initialize() error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
+	if (v.CephVolume == "") {
+		log.Infof("Initializing volume: %s", v.Path)
+	} else {
+		log.Infof("Initializing Ceph volume: %s -> %s -> %s", v.CephVolume, v.CephDevice, v.Path)
+	}
 
 	if _, err := os.Stat(v.Path); err != nil && os.IsNotExist(err) {
+		log.Infof("Creating %s", v.Path)
 		if err := os.MkdirAll(v.Path, 0755); err != nil {
 			return err
 		}
@@ -99,6 +108,7 @@ func (v *Volume) initialize() error {
 	if err := os.MkdirAll(v.configPath, 0755); err != nil {
 		return err
 	}
+
 	jsonPath, err := v.jsonPath()
 	if err != nil {
 		return err

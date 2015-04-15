@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -90,6 +91,7 @@ type Container struct {
 	// Store rw/ro in a separate structure to preserve reverse-compatibility on-disk.
 	// Easier than migrating older container configs :)
 	VolumesRW  map[string]bool
+	VolumesCephDevice map[string]string
 	hostConfig *runconfig.HostConfig
 
 	activeLinks        map[string]*links.Link
@@ -354,7 +356,7 @@ func (container *Container) Start() (err error) {
 		return err
 	}
 	container.verifyDaemonSettings()
-	if err := container.prepareVolumes(); err != nil {
+	if err := container.prepareVolumes(true); err != nil {
 		return err
 	}
 	linkedEnv, err := container.setupLinkedContainers()
@@ -625,8 +627,44 @@ func (container *Container) cleanup() {
 		log.Errorf("%v: Failed to umount filesystem: %v", container.ID, err)
 	}
 
+	// I think this is the correct place for RBD unmounting and unmaping, rather than Container.Unmount(), which is called in a lot of other situations too.
+	// Container.cleanup() is only called by Container.Start(), which is the only place that calls Container.prepareVolumes(true),
+	// which is the only way to trigger Mount.initialize(true), which is currently where we perform the RBD mapping and mounting.
+	for mountToPath, path := range container.Volumes {
+		cephDevice := container.VolumesCephDevice[mountToPath]
+		if cephDevice == "" {
+			continue
+		}
+
+		log.Infof("Unmounting %s from %s", cephDevice, path)
+		cmd := exec.Command("umount", path)
+		var out bytes.Buffer
+		cmd.Stderr = &out
+		err := cmd.Run()
+		if err == nil {
+			log.Infof("Succeeded in unmounting %s from %s", cephDevice, path)
+		} else {
+			log.Errorf("Failed to unmount %s from %s: %s - %s", cephDevice, path, err, strings.TrimRight(out.String(), "\n"))
+		}
+
+		UnmapCephDevice(cephDevice)
+	}
+
 	for _, eConfig := range container.execCommands.s {
 		container.daemon.unregisterExecCommand(eConfig)
+	}
+}
+
+func UnmapCephDevice(cephDevice string) {
+	log.Infof("Unmapping Ceph volume from %s", cephDevice)
+	cmd := exec.Command("rbd", "unmap", cephDevice)
+	var out bytes.Buffer
+	cmd.Stderr = &out
+	err := cmd.Run()
+	if err == nil {
+		log.Infof("Succeeded in unmapping Ceph volume from %s", cephDevice)
+	} else {
+		log.Errorf("Failed to unmap Ceph volume from %s: %s - %s", cephDevice, err, strings.TrimRight(out.String(), "\n"))
 	}
 }
 
