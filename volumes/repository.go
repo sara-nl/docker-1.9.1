@@ -39,7 +39,7 @@ func NewRepository(configPath string, driver graphdriver.Driver) (*Repository, e
 	return repo, repo.restore()
 }
 
-func (r *Repository) newVolume(path string, writable bool) (*Volume, error) {
+func (r *Repository) newVolume(path string, writable bool, ceph bool) (*Volume, error) {
 	var (
 		isBindMount bool
 		err         error
@@ -68,6 +68,7 @@ func (r *Repository) newVolume(path string, writable bool) (*Volume, error) {
 		Path:        path,
 		repository:  r,
 		Writable:    writable,
+		Ceph:        ceph,
 		containers:  make(map[string]struct{}),
 		configPath:  r.configPath + "/" + id,
 		IsBindMount: isBindMount,
@@ -179,17 +180,17 @@ func (r *Repository) createNewVolumePath(id string) (string, error) {
 	return path, nil
 }
 
-func (r *Repository) FindOrCreateVolume(path string, writable bool) (*Volume, error) {
+func (r *Repository) FindOrCreateVolume(path string, writable bool, ceph bool) (*Volume, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
 	if path == "" {
-		return r.newVolume(path, writable)
+		return r.newVolume(path, writable, ceph)
 	}
 
 	if v := r.get(path); v != nil {
 		return v, nil
 	}
 
-	return r.newVolume(path, writable)
+	return r.newVolume(path, writable, ceph)
 }

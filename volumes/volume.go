@@ -8,9 +8,12 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
+	"os/exec"
 
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/symlink"
+	"fmt"
+	"bytes"
 )
 
 type Volume struct {
@@ -18,6 +21,7 @@ type Volume struct {
 	Path        string
 	IsBindMount bool
 	Writable    bool
+	Ceph        bool
 	containers  map[string]struct{}
 	configPath  string
 	repository  *Repository
@@ -86,19 +90,35 @@ func (v *Volume) AddContainer(containerId string) {
 	v.lock.Unlock()
 }
 
+//TODO: Why does this get called twice?
 func (v *Volume) initialize() error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
+	fmt.Printf("Initializing volume: %s %s\n", v.Path, v.Ceph)
 
-	if _, err := os.Stat(v.Path); err != nil && os.IsNotExist(err) {
-		if err := os.MkdirAll(v.Path, 0755); err != nil {
+	if (v.Ceph) {
+		cmd := exec.Command("echo", "Echoed", "text")
+		//cmd.Stdin = strings.NewReader("some input")
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		err := cmd.Run()
+		if err == nil {
+			fmt.Printf("Received from echo process: %s\n", out.String())
+		} else {
+			fmt.Printf("Error executing echo\n")
+		}
+	}// else {
+		if _, err := os.Stat(v.Path); err != nil && os.IsNotExist(err) {
+			if err := os.MkdirAll(v.Path, 0755); err != nil {
+				return err
+			}
+		}
+
+		if err := os.MkdirAll(v.configPath, 0755); err != nil {
 			return err
 		}
-	}
+	//}
 
-	if err := os.MkdirAll(v.configPath, 0755); err != nil {
-		return err
-	}
 	jsonPath, err := v.jsonPath()
 	if err != nil {
 		return err

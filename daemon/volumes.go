@@ -23,6 +23,7 @@ type Mount struct {
 	container   *Container
 	volume      *volumes.Volume
 	Writable    bool
+	Ceph        bool
 	copyData    bool
 	from        *Container
 }
@@ -76,6 +77,7 @@ func (container *Container) createVolumes() error {
 }
 
 func (m *Mount) initialize() error {
+	fmt.Printf("Initializing mount: %s -> %s %s %t\n", m.volume.Path, m.container.basefs, m.MountToPath, m.Ceph)
 	// No need to initialize anything since it's already been initialized
 	if hostPath, exists := m.container.Volumes[m.MountToPath]; exists {
 		// If this is a bind-mount/volumes-from, maybe it was passed in at start instead of create
@@ -130,7 +132,7 @@ func (container *Container) registerVolumes() {
 		if rw, exists := container.VolumesRW[path]; exists {
 			writable = rw
 		}
-		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable)
+		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, false)
 		if err != nil {
 			log.Debugf("error registering volume %s: %v", path, err)
 			continue
@@ -154,7 +156,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 	var mounts = make(map[string]*Mount)
 	// Get all the bind mounts
 	for _, spec := range container.hostConfig.Binds {
-		path, mountToPath, writable, _, err := parseBindMountSpec(spec)
+		path, mountToPath, writable, ceph, err := parseBindMountSpec(spec)
 		if err != nil {
 			return nil, err
 		}
@@ -163,7 +165,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			return nil, fmt.Errorf("Duplicate volume %q: %q already in use, mounted from %q", path, mountToPath, m.volume.Path)
 		}
 		// Check if a volume already exists for this and use it
-		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable)
+		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph)
 		if err != nil {
 			return nil, err
 		}
@@ -172,6 +174,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			volume:      vol,
 			MountToPath: mountToPath,
 			Writable:    writable,
+			Ceph:        ceph,
 		}
 	}
 
@@ -194,7 +197,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			}
 		}
 
-		vol, err := container.daemon.volumes.FindOrCreateVolume("", true)
+		vol, err := container.daemon.volumes.FindOrCreateVolume("", true, false)
 		if err != nil {
 			return nil, err
 		}
@@ -203,6 +206,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			MountToPath: path,
 			volume:      vol,
 			Writable:    true,
+			Ceph:        false,
 			copyData:    true,
 		}
 	}
