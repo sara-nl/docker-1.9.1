@@ -13,7 +13,7 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/symlink"
 	"fmt"
-	"bytes"
+	"strings"
 )
 
 type Volume struct {
@@ -97,15 +97,15 @@ func (v *Volume) initialize() error {
 	fmt.Printf("Initializing volume: %s %s\n", v.Path, v.Ceph)
 
 	if (v.Ceph) {
-		cmd := exec.Command("echo", "Echoed", "text")
-		//cmd.Stdin = strings.NewReader("some input")
-		var out bytes.Buffer
-		cmd.Stdout = &out
+		items := strings.Split(v.Path, "/")
+		cephVolume := items[len(items) - 1]
+		fmt.Printf("Mapping %s\n", cephVolume)
+		cmd := exec.Command("rbd", "map", cephVolume)
 		err := cmd.Run()
 		if err == nil {
-			fmt.Printf("Received from echo process: %s\n", out.String())
+			fmt.Printf("Succeeded executing rbd\n")
 		} else {
-			fmt.Printf("Error executing echo\n")
+			fmt.Printf("Error executing rbd: %s\n", err)
 		}
 	}// else {
 		if _, err := os.Stat(v.Path); err != nil && os.IsNotExist(err) {
