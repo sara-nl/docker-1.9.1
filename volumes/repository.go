@@ -45,17 +45,25 @@ func (r *Repository) newVolume(path string, writable bool, ceph bool) (*Volume, 
 		err         error
 		id          = utils.GenerateRandomID()
 	)
-	if path != "" {
-		isBindMount = true
-	}
 
+	cephVolume := ""
+	cephDevice := ""
 	if path == "" {
 		path, err = r.createNewVolumePath(id)
 		if err != nil {
 			return nil, err
 		}
+	} else if ceph {
+		isBindMount = true
+		cephVolume = path
+		cephDevice = "/dev/rbd/rbd/" + cephVolume //TODO: Allow for this to be overridden by an environment variable? TODO: This might not actually be the correct path, if the volume is mapped multiple times. How to get the device number (e.g. /dev/rbd0)?
+		path = "/var/lib/docker/cephmount-" + utils.GenerateRandomID() + "-" + cephVolume //TODO: Use m.container.basefs?
+		//TODO: Might want to check the directory for existence and retry if it does exist and is nonempty (or already has something mounted to it)
+		fmt.Printf("Ceph: %s -> %s -> %s\n", cephVolume, cephDevice, path)
+	} else {
+		isBindMount = true
+		path = filepath.Clean(path)
 	}
-	path = filepath.Clean(path)
 
 	// Ignore the error here since the path may not exist
 	// Really just want to make sure the path we are using is real(or non-existant)
@@ -68,7 +76,8 @@ func (r *Repository) newVolume(path string, writable bool, ceph bool) (*Volume, 
 		Path:        path,
 		repository:  r,
 		Writable:    writable,
-		Ceph:        ceph,
+		CephVolume:  cephVolume,
+		CephDevice:  cephDevice,
 		containers:  make(map[string]struct{}),
 		configPath:  r.configPath + "/" + id,
 		IsBindMount: isBindMount,

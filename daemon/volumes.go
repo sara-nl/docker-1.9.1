@@ -77,7 +77,7 @@ func (container *Container) createVolumes() error {
 }
 
 func (m *Mount) initialize() error {
-	fmt.Printf("Initializing mount: %s -> %s %s %t\n", m.volume.Path, m.container.basefs, m.MountToPath, m.Ceph)
+	fmt.Printf("Initializing mount: %s -> %s (%s) %t\n", m.volume.Path, m.container.basefs, m.MountToPath, m.Ceph)
 	// No need to initialize anything since it's already been initialized
 	if hostPath, exists := m.container.Volumes[m.MountToPath]; exists {
 		// If this is a bind-mount/volumes-from, maybe it was passed in at start instead of create
@@ -236,11 +236,15 @@ func parseBindMountSpec(spec string) (string, string, bool, bool, error) {
 		return "", "", false, false, fmt.Errorf("Invalid volume specification: %s", spec)
 	}
 
-	if !filepath.IsAbs(path) {
-		return "", "", false, false, fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
+	//TODO: If ceph, check that path is a valid ceph volume name
+	if !ceph {
+		if !filepath.IsAbs(path) {
+			return "", "", false, false, fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
+		} else {
+			path = filepath.Clean(path)
+		}
 	}
 
-	path = filepath.Clean(path)
 	mountToPath = filepath.Clean(mountToPath)
 	fmt.Printf("Volume bind: %s : %s : %s : %s\n", path, mountToPath, writable, ceph)
 	return path, mountToPath, writable, ceph, nil

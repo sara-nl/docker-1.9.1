@@ -13,15 +13,16 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/symlink"
 	"fmt"
-	"strings"
+	"bytes"
 )
 
 type Volume struct {
 	ID          string
 	Path        string
+	CephVolume  string
+	CephDevice  string
 	IsBindMount bool
 	Writable    bool
-	Ceph        bool
 	containers  map[string]struct{}
 	configPath  string
 	repository  *Repository
@@ -94,30 +95,38 @@ func (v *Volume) AddContainer(containerId string) {
 func (v *Volume) initialize() error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
-	fmt.Printf("Initializing volume: %s %s\n", v.Path, v.Ceph)
+	fmt.Printf("Initializing volume: %s %s %s\n", v.Path, v.CephVolume, v.CephDevice)
 
-	if (v.Ceph) {
-		items := strings.Split(v.Path, "/")
-		cephVolume := items[len(items) - 1]
-		fmt.Printf("Mapping %s\n", cephVolume)
-		cmd := exec.Command("rbd", "map", cephVolume)
-		err := cmd.Run()
+	if _, err := os.Stat(v.Path); err != nil && os.IsNotExist(err) {
+		fmt.Printf("Creating %s on host\n", v.Path)
+		if err := os.MkdirAll(v.Path, 0755); err != nil {
+			return err
+		}
+	}
+
+	if (v.CephVolume != "") {
+		fmt.Printf("Mapping %s\n", v.CephVolume)
+		err := exec.Command("rbd", "map", v.CephVolume).Run()
 		if err == nil {
 			fmt.Printf("Succeeded executing rbd\n")
 		} else {
 			fmt.Printf("Error executing rbd: %s\n", err)
 		}
-	}// else {
-		if _, err := os.Stat(v.Path); err != nil && os.IsNotExist(err) {
-			if err := os.MkdirAll(v.Path, 0755); err != nil {
-				return err
-			}
+		fmt.Printf("Mounting %s to %s on host\n", v.CephDevice, v.Path)
+		var out bytes.Buffer
+		cmd := exec.Command("mount", v.CephDevice, v.Path)
+		cmd.Stderr = &out
+		err = cmd.Run()
+		if err == nil {
+			fmt.Printf("Succeeded mounting\n")
+		} else {
+			fmt.Printf("Error mounting: %s - %s\n", err, out.String())
 		}
+	}
 
-		if err := os.MkdirAll(v.configPath, 0755); err != nil {
-			return err
-		}
-	//}
+	if err := os.MkdirAll(v.configPath, 0755); err != nil {
+		return err
+	}
 
 	jsonPath, err := v.jsonPath()
 	if err != nil {
