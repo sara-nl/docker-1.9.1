@@ -91,8 +91,7 @@ func (v *Volume) AddContainer(containerId string) {
 	v.lock.Unlock()
 }
 
-//TODO: Why does this get called twice?
-func (v *Volume) initialize() error {
+func (v *Volume) initialize(isStarting bool) error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 	fmt.Printf("Initializing volume: %s %s %s\n", v.Path, v.CephVolume, v.CephDevice)
@@ -104,7 +103,7 @@ func (v *Volume) initialize() error {
 		}
 	}
 
-	if (v.CephVolume != "") {
+	if (v.CephVolume != "" && isStarting) {
 		fmt.Printf("Mapping %s\n", v.CephVolume)
 		err := exec.Command("rbd", "map", v.CephVolume).Run()
 		if err == nil {

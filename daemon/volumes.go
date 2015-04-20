@@ -40,13 +40,13 @@ func (mnt *Mount) Export(resource string) (io.ReadCloser, error) {
 	return mnt.volume.Export(path, name)
 }
 
-func (container *Container) prepareVolumes() error {
+func (container *Container) prepareVolumes(isStarting bool) error {
 	if container.Volumes == nil || len(container.Volumes) == 0 {
 		container.Volumes = make(map[string]string)
 		container.VolumesRW = make(map[string]bool)
 	}
 
-	return container.createVolumes()
+	return container.createVolumes(isStarting)
 }
 
 // sortedVolumeMounts returns the list of container volume mount points sorted in lexicographic order
@@ -60,8 +60,8 @@ func (container *Container) sortedVolumeMounts() []string {
 	return mountPaths
 }
 
-func (container *Container) createVolumes() error {
-	mounts, err := container.parseVolumeMountConfig()
+func (container *Container) createVolumes(isStarting bool) error {
+	mounts, err := container.parseVolumeMountConfig(isStarting)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (container *Container) registerVolumes() {
 		if rw, exists := container.VolumesRW[path]; exists {
 			writable = rw
 		}
-		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, false)
+		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, false, false)
 		if err != nil {
 			log.Debugf("error registering volume %s: %v", path, err)
 			continue
@@ -152,7 +152,7 @@ func (container *Container) derefVolumes() {
 	}
 }
 
-func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) {
+func (container *Container) parseVolumeMountConfig(isStarting bool) (map[string]*Mount, error) {
 	var mounts = make(map[string]*Mount)
 	// Get all the bind mounts
 	for _, spec := range container.hostConfig.Binds {
@@ -165,7 +165,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			return nil, fmt.Errorf("Duplicate volume %q: %q already in use, mounted from %q", path, mountToPath, m.volume.Path)
 		}
 		// Check if a volume already exists for this and use it
-		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph)
+		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph, isStarting)
 		if err != nil {
 			return nil, err
 		}
@@ -197,7 +197,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			}
 		}
 
-		vol, err := container.daemon.volumes.FindOrCreateVolume("", true, false)
+		vol, err := container.daemon.volumes.FindOrCreateVolume("", true, false, isStarting)
 		if err != nil {
 			return nil, err
 		}

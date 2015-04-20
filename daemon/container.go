@@ -354,7 +354,7 @@ func (container *Container) Start() (err error) {
 		return err
 	}
 	container.verifyDaemonSettings()
-	if err := container.prepareVolumes(); err != nil {
+	if err := container.prepareVolumes(true); err != nil {
 		return err
 	}
 	linkedEnv, err := container.setupLinkedContainers()
