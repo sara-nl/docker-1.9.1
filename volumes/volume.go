@@ -8,12 +8,10 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
-	"os/exec"
 
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/symlink"
 	"fmt"
-	"bytes"
 )
 
 type Volume struct {
@@ -91,7 +89,7 @@ func (v *Volume) AddContainer(containerId string) {
 	v.lock.Unlock()
 }
 
-func (v *Volume) initialize(isStarting bool) error {
+func (v *Volume) initialize() error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 	fmt.Printf("Initializing volume: %s %s %s\n", v.Path, v.CephVolume, v.CephDevice)
@@ -100,26 +98,6 @@ func (v *Volume) initialize(isStarting bool) error {
 		fmt.Printf("Creating %s on host\n", v.Path)
 		if err := os.MkdirAll(v.Path, 0755); err != nil {
 			return err
-		}
-	}
-
-	if (v.CephVolume != "" && isStarting) {
-		fmt.Printf("Mapping %s\n", v.CephVolume)
-		err := exec.Command("rbd", "map", v.CephVolume).Run()
-		if err == nil {
-			fmt.Printf("Succeeded executing rbd\n")
-		} else {
-			fmt.Printf("Error executing rbd: %s\n", err)
-		}
-		fmt.Printf("Mounting %s to %s on host\n", v.CephDevice, v.Path)
-		var out bytes.Buffer
-		cmd := exec.Command("mount", v.CephDevice, v.Path)
-		cmd.Stderr = &out
-		err = cmd.Run()
-		if err == nil {
-			fmt.Printf("Succeeded mounting\n")
-		} else {
-			fmt.Printf("Error mounting: %s - %s\n", err, out.String())
 		}
 	}
 

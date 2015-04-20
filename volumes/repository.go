@@ -39,7 +39,7 @@ func NewRepository(configPath string, driver graphdriver.Driver) (*Repository, e
 	return repo, repo.restore()
 }
 
-func (r *Repository) newVolume(path string, writable bool, ceph bool, isStarting bool) (*Volume, error) {
+func (r *Repository) newVolume(path string, writable bool, ceph bool) (*Volume, error) {
 	var (
 		isBindMount bool
 		err         error
@@ -57,7 +57,7 @@ func (r *Repository) newVolume(path string, writable bool, ceph bool, isStarting
 		isBindMount = true
 		cephVolume = path
 		cephDevice = "/dev/rbd/rbd/" + cephVolume //TODO: Allow for this to be overridden by an environment variable? TODO: This might not actually be the correct path, if the volume is mapped multiple times. How to get the device number (e.g. /dev/rbd0)?
-		path = "/var/lib/docker/cephmount-" + utils.GenerateRandomID() + "-" + cephVolume //TODO: Use m.container.basefs?
+		path = "/var/lib/docker/cephmount-" + cephVolume //TODO: Use m.container.basefs?
 		//TODO: Might want to check the directory for existence and retry if it does exist and is nonempty (or already has something mounted to it)
 		fmt.Printf("Ceph: %s -> %s -> %s\n", cephVolume, cephDevice, path)
 	} else {
@@ -83,7 +83,7 @@ func (r *Repository) newVolume(path string, writable bool, ceph bool, isStarting
 		IsBindMount: isBindMount,
 	}
 
-	if err := v.initialize(isStarting); err != nil {
+	if err := v.initialize(); err != nil {
 		return nil, err
 	}
 
@@ -108,7 +108,7 @@ func (r *Repository) restore() error {
 				log.Debugf("Error restoring volume: %v", err)
 				continue
 			}
-			if err := vol.initialize(false); err != nil {
+			if err := vol.initialize(); err != nil {
 				log.Debugf("%s", err)
 				continue
 			}
@@ -189,17 +189,23 @@ func (r *Repository) createNewVolumePath(id string) (string, error) {
 	return path, nil
 }
 
-func (r *Repository) FindOrCreateVolume(path string, writable bool, ceph bool, isStarting bool) (*Volume, error) {
+func (r *Repository) FindOrCreateVolume(path string, writable bool, ceph bool) (*Volume, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
 	if path == "" {
-		return r.newVolume(path, writable, ceph, isStarting)
+		return r.newVolume(path, writable, ceph)
 	}
 
-	if v := r.get(path); v != nil {
+	//HACK: Handle the ceph rewriting in one place
+	checkpath := path
+	if (ceph) {
+		checkpath = "/var/lib/docker/cephmount-" + path
+	}
+	if v := r.get(checkpath); v != nil {
+		fmt.Printf("Volume %s already exists: %s %s\n", checkpath, v.CephVolume, v.CephDevice)
 		return v, nil
 	}
 
-	return r.newVolume(path, writable, ceph, isStarting)
+	return r.newVolume(path, writable, ceph)
 }

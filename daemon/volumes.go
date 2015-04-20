@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"syscall"
+	"os/exec"
+	"bytes"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/daemon/execdriver"
@@ -61,23 +63,46 @@ func (container *Container) sortedVolumeMounts() []string {
 }
 
 func (container *Container) createVolumes(isStarting bool) error {
-	mounts, err := container.parseVolumeMountConfig(isStarting)
+	mounts, err := container.parseVolumeMountConfig()
 	if err != nil {
 		return err
 	}
 
 	for _, mnt := range mounts {
-		if err := mnt.initialize(); err != nil {
+		if err := mnt.initialize(isStarting); err != nil {
 			return err
 		}
 	}
 
 	// On every start, this will apply any new `VolumesFrom` entries passed in via HostConfig, which may override volumes set in `create`
-	return container.applyVolumesFrom()
+	return container.applyVolumesFrom(isStarting)
 }
 
-func (m *Mount) initialize() error {
-	fmt.Printf("Initializing mount: %s -> %s (%s) %t\n", m.volume.Path, m.container.basefs, m.MountToPath, m.Ceph)
+func (m *Mount) initialize(isStarting bool) error {
+	fmt.Printf("Initializing mount: %s -> %s (%s) %t %t\n", m.volume.Path, m.container.basefs, m.MountToPath, m.Ceph, isStarting)
+
+	//TODO: Is it correct to do this here, or should we consider the existence check below?
+	v := m.volume
+	if (v.CephVolume != "" && isStarting) {
+		fmt.Printf("Mapping %s\n", v.CephVolume)
+		err := exec.Command("rbd", "map", v.CephVolume).Run()
+		if err == nil {
+			fmt.Printf("Succeeded executing rbd\n")
+		} else {
+			fmt.Printf("Error executing rbd: %s\n", err)
+		}
+		fmt.Printf("Mounting %s to %s on host\n", v.CephDevice, v.Path)
+		var out bytes.Buffer
+		cmd := exec.Command("mount", v.CephDevice, v.Path)
+		cmd.Stderr = &out
+		err = cmd.Run()
+		if err == nil {
+			fmt.Printf("Succeeded mounting\n")
+		} else {
+			fmt.Printf("Error mounting: %s - %s\n", err, out.String())
+		}
+	}
+
 	// No need to initialize anything since it's already been initialized
 	if hostPath, exists := m.container.Volumes[m.MountToPath]; exists {
 		// If this is a bind-mount/volumes-from, maybe it was passed in at start instead of create
@@ -132,7 +157,7 @@ func (container *Container) registerVolumes() {
 		if rw, exists := container.VolumesRW[path]; exists {
 			writable = rw
 		}
-		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, false, false)
+		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, false)
 		if err != nil {
 			log.Debugf("error registering volume %s: %v", path, err)
 			continue
@@ -152,7 +177,7 @@ func (container *Container) derefVolumes() {
 	}
 }
 
-func (container *Container) parseVolumeMountConfig(isStarting bool) (map[string]*Mount, error) {
+func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) {
 	var mounts = make(map[string]*Mount)
 	// Get all the bind mounts
 	for _, spec := range container.hostConfig.Binds {
@@ -165,7 +190,7 @@ func (container *Container) parseVolumeMountConfig(isStarting bool) (map[string]
 			return nil, fmt.Errorf("Duplicate volume %q: %q already in use, mounted from %q", path, mountToPath, m.volume.Path)
 		}
 		// Check if a volume already exists for this and use it
-		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph, isStarting)
+		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph)
 		if err != nil {
 			return nil, err
 		}
@@ -197,7 +222,7 @@ func (container *Container) parseVolumeMountConfig(isStarting bool) (map[string]
 			}
 		}
 
-		vol, err := container.daemon.volumes.FindOrCreateVolume("", true, false, isStarting)
+		vol, err := container.daemon.volumes.FindOrCreateVolume("", true, false)
 		if err != nil {
 			return nil, err
 		}
@@ -269,7 +294,7 @@ func parseVolumesFromSpec(spec string) (string, string, error) {
 	return id, mode, nil
 }
 
-func (container *Container) applyVolumesFrom() error {
+func (container *Container) applyVolumesFrom(isStarting bool) error {
 	volumesFrom := container.hostConfig.VolumesFrom
 	if len(volumesFrom) > 0 && container.AppliedVolumesFrom == nil {
 		container.AppliedVolumesFrom = make(map[string]struct{})
@@ -308,7 +333,7 @@ func (container *Container) applyVolumesFrom() error {
 		for _, mnt := range mounts {
 			mnt.from = mnt.container
 			mnt.container = container
-			if err := mnt.initialize(); err != nil {
+			if err := mnt.initialize(isStarting); err != nil {
 				return err
 			}
 		}
