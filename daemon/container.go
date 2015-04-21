@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -90,6 +91,7 @@ type Container struct {
 	// Store rw/ro in a separate structure to preserve reverse-compatibility on-disk.
 	// Easier than migrating older container configs :)
 	VolumesRW  map[string]bool
+	VolumesCephDevice map[string]string
 	hostConfig *runconfig.HostConfig
 
 	activeLinks        map[string]*links.Link
@@ -623,6 +625,35 @@ func (container *Container) cleanup() {
 
 	if err := container.Unmount(); err != nil {
 		log.Errorf("%v: Failed to umount filesystem: %v", container.ID, err)
+	}
+
+	// I think this is the correct place for RBD unmounting and unmaping, rather than Container.Unmount(), which is called in a lot of other situations too.
+	// Container.cleanup() is only called by Container.Start(), which is the only place that calls Container.prepareVolumes(true),
+	// which is the only way to trigger Mount.initialize(true), which is currently where we perform the RBD mapping and mounting.
+	for mountToPath, path := range container.Volumes {
+		cephDevice := container.VolumesCephDevice[mountToPath]
+		if cephDevice == "" {
+			continue
+		}
+
+		fmt.Printf("Unmounting %s from %s on host\n", cephDevice, path)
+		var out bytes.Buffer
+		cmd := exec.Command("umount", path)
+		cmd.Stderr = &out
+		err := cmd.Run()
+		if err == nil {
+			fmt.Printf("Succeeded unmounting\n")
+		} else {
+			fmt.Printf("Error unmounting: %s - %s\n", err, out.String())
+		}
+
+		fmt.Printf("Unmapping %s\n", cephDevice)
+		err = exec.Command("rbd", "unmap", cephDevice).Run()
+		if err == nil {
+			fmt.Printf("Succeeded executing rbd\n")
+		} else {
+			fmt.Printf("Error executing rbd: %s\n", err)
+		}
 	}
 
 	for _, eConfig := range container.execCommands.s {

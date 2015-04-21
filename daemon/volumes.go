@@ -46,6 +46,7 @@ func (container *Container) prepareVolumes(isStarting bool) error {
 	if container.Volumes == nil || len(container.Volumes) == 0 {
 		container.Volumes = make(map[string]string)
 		container.VolumesRW = make(map[string]bool)
+		container.VolumesCephDevice = make(map[string]string)
 	}
 
 	return container.createVolumes(isStarting)
@@ -126,8 +127,9 @@ func (m *Mount) initialize(isStarting bool) error {
 	if err != nil {
 		return err
 	}
-	m.container.VolumesRW[m.MountToPath] = m.Writable
 	m.container.Volumes[m.MountToPath] = m.volume.Path
+	m.container.VolumesRW[m.MountToPath] = m.Writable
+	m.container.VolumesCephDevice[m.MountToPath] = m.volume.CephDevice
 	m.volume.AddContainer(m.container.ID)
 	if m.Writable && m.copyData {
 		// Copy whatever is in the container at the mntToPath to the volume
@@ -157,7 +159,11 @@ func (container *Container) registerVolumes() {
 		if rw, exists := container.VolumesRW[path]; exists {
 			writable = rw
 		}
-		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, false)
+		ceph := false
+		if cephDevice, exists := container.VolumesCephDevice[path]; exists {
+			ceph = cephDevice != ""
+		}
+		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph)
 		if err != nil {
 			log.Debugf("error registering volume %s: %v", path, err)
 			continue

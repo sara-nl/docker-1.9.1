@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sync"
-	"bytes"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/daemon/graphdriver"
@@ -171,27 +169,6 @@ func (r *Repository) Delete(path string) error {
 			if !os.IsNotExist(err) {
 				return err
 			}
-		}
-	}
-
-	if volume.CephVolume != "" {
-		fmt.Printf("Unmounting %s from %s on host\n", volume.CephDevice, volume.Path)
-		var out bytes.Buffer
-		cmd := exec.Command("umount", volume.Path)
-		cmd.Stderr = &out
-		err = cmd.Run()
-		if err == nil {
-			fmt.Printf("Succeeded unmounting\n")
-		} else {
-			fmt.Printf("Error unmounting: %s - %s\n", err, out.String())
-		}
-
-		fmt.Printf("Unmapping %s (at %s)\n", volume.CephVolume, volume.CephDevice)
-		err := exec.Command("rbd", "unmap", volume.CephDevice).Run()
-		if err == nil {
-			fmt.Printf("Succeeded executing rbd\n")
-		} else {
-			fmt.Printf("Error executing rbd: %s\n", err)
 		}
 	}
 

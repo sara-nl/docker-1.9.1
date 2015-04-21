@@ -52,6 +52,7 @@ func (daemon *Daemon) ContainerInspect(job *engine.Job) engine.Status {
 	out.Set("ProcessLabel", container.ProcessLabel)
 	out.SetJson("Volumes", container.Volumes)
 	out.SetJson("VolumesRW", container.VolumesRW)
+	out.SetJson("VolumesCephDevice", container.VolumesCephDevice)
 	out.SetJson("AppArmorProfile", container.AppArmorProfile)
 
 	out.SetList("ExecIDs", container.GetExecIDs())
