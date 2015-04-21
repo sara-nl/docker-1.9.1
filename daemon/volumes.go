@@ -85,16 +85,28 @@ func (m *Mount) initialize(isStarting bool) error {
 	//TODO: Is it correct to do this here, or should we consider the existence check below?
 	v := m.volume
 	if (v.CephVolume != "" && isStarting) {
-		fmt.Printf("Mapping %s\n", v.CephVolume)
-		err := exec.Command("rbd", "map", v.CephVolume).Run()
+		modeOption := "rw"
+		if (!v.Writable) {
+			modeOption = "ro"
+		}
+		fmt.Printf("Mapping %s as %s\n", v.CephVolume, modeOption)
+		cmd := exec.Command("rbd", "map", v.CephVolume, "--options", modeOption)
+		var out bytes.Buffer
+		cmd.Stderr = &out
+		err := cmd.Run()
 		if err == nil {
 			fmt.Printf("Succeeded executing rbd\n")
 		} else {
-			fmt.Printf("Error executing rbd: %s\n", err)
+			fmt.Printf("Error executing rbd: %s - %s\n", err, out.String())
 		}
-		fmt.Printf("Mounting %s to %s on host\n", v.CephDevice, v.Path)
-		var out bytes.Buffer
-		cmd := exec.Command("mount", v.CephDevice, v.Path)
+
+		modeFlag := "--rw"
+		if (!v.Writable) {
+			modeFlag = "--read-only"
+		}
+		fmt.Printf("Mounting %s to %s on host as %s\n", v.CephDevice, v.Path, modeFlag)
+		cmd = exec.Command("mount", modeFlag, v.CephDevice, v.Path)
+		out.Reset()
 		cmd.Stderr = &out
 		err = cmd.Run()
 		if err == nil {
