@@ -567,6 +567,10 @@ func Allocate(id, requestedMac, requestedIP, requestedIPv6 string, isRoutedNetwo
 	if isRoutedNetwork {
 		return allocateInterfaceWithStaticIP(id, requestedIP)
 	}
+	
+	if  parsedIP := net.ParseIP(requestedIP); parsedIP != nil {
+		ip, err = ipallocator.RequestIP(bridgeIPv4Network, parsedIP)
+	}
 
 	ip, err = ipAllocator.RequestIP(bridgeIPv4Network, net.ParseIP(requestedIP))
 	if err != nil {
