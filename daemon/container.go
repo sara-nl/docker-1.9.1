@@ -636,23 +636,26 @@ func (container *Container) cleanup() {
 			continue
 		}
 
-		fmt.Printf("Unmounting %s from %s on host\n", cephDevice, path)
-		var out bytes.Buffer
+		log.Infof("Unmounting %s from %s", cephDevice, path)
 		cmd := exec.Command("umount", path)
+		var out bytes.Buffer
 		cmd.Stderr = &out
 		err := cmd.Run()
 		if err == nil {
-			fmt.Printf("Succeeded unmounting\n")
+			log.Infof("Succeeded in unmounting %s from %s", cephDevice, path)
 		} else {
-			fmt.Printf("Error unmounting: %s - %s\n", err, out.String())
+			log.Errorf("Failed to unmount %s from %s: %s - %s", cephDevice, path, err, out.String())
 		}
 
-		fmt.Printf("Unmapping %s\n", cephDevice)
-		err = exec.Command("rbd", "unmap", cephDevice).Run()
+		log.Infof("Unmapping Ceph volume from %s", cephDevice)
+		cmd = exec.Command("rbd", "unmap", cephDevice)
+		out.Reset()
+		cmd.Stderr = &out
+		err = cmd.Run()
 		if err == nil {
-			fmt.Printf("Succeeded executing rbd\n")
+			log.Infof("Succeeded in unmapping Ceph volume from %s", cephDevice)
 		} else {
-			fmt.Printf("Error executing rbd: %s\n", err)
+			log.Errorf("Failed to unmap Ceph volume from %s: %s - %s", cephDevice, err, out.String())
 		}
 	}
 

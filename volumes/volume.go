@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"sync"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/symlink"
-	"fmt"
 )
 
 type Volume struct {
@@ -92,10 +92,14 @@ func (v *Volume) AddContainer(containerId string) {
 func (v *Volume) initialize() error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
-	fmt.Printf("Initializing volume: %s %s %s\n", v.Path, v.CephVolume, v.CephDevice)
+	if (v.CephVolume == "") {
+		log.Infof("Initializing volume: %s", v.Path)
+	} else {
+		log.Infof("Initializing Ceph volume: %s -> %s -> %s", v.CephVolume, v.CephDevice, v.Path)
+	}
 
 	if _, err := os.Stat(v.Path); err != nil && os.IsNotExist(err) {
-		fmt.Printf("Creating %s on host\n", v.Path)
+		log.Infof("Creating %s", v.Path)
 		if err := os.MkdirAll(v.Path, 0755); err != nil {
 			return err
 		}

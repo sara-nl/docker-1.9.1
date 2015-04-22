@@ -21,8 +21,6 @@ type Mount struct {
 }
 
 func (m *Mount) Mount(rootfs, mountLabel string) error {
-	fmt.Printf("Mount:\n\trootfs: %s\n\tmountLabel: %s\n\tType: %s\n\tSource: %s\n\tDestination: %s\n\tWritable: %t\n\tRelabel: %s\n\tPrivate: %t\n\tSlave: %t\n",
-			rootfs, mountLabel, m.Type, m.Source, m.Destination, m.Writable, m.Relabel, m.Private, m.Slave)
 	switch m.Type {
 	case "bind":
 		return m.bindMount(rootfs, mountLabel)

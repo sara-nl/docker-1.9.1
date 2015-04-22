@@ -80,7 +80,7 @@ func (container *Container) createVolumes(isStarting bool) error {
 }
 
 func (m *Mount) initialize(isStarting bool) error {
-	fmt.Printf("Initializing mount: %s -> %s (%s) %t %t\n", m.volume.Path, m.container.basefs, m.MountToPath, m.Ceph, isStarting)
+	log.Infof("Initializing mount: %s -> %s%s (Ceph: %t; is starting: %t)", m.volume.Path, m.container.basefs, m.MountToPath, m.Ceph, isStarting)
 
 	//TODO: Is it correct to do this here, or should we consider the existence check below?
 	v := m.volume
@@ -89,30 +89,31 @@ func (m *Mount) initialize(isStarting bool) error {
 		if (!v.Writable) {
 			modeOption = "ro"
 		}
-		fmt.Printf("Mapping %s as %s\n", v.CephVolume, modeOption)
+		log.Infof("Mapping Ceph volume %s with the %s option", v.CephVolume, modeOption)
 		cmd := exec.Command("rbd", "map", v.CephVolume, "--options", modeOption)
 		var out bytes.Buffer
 		cmd.Stderr = &out
 		err := cmd.Run()
 		if err == nil {
-			fmt.Printf("Succeeded executing rbd\n")
+			log.Infof("Succeeded in mapping Ceph volume %s with the %s option", v.CephVolume, modeOption)
 		} else {
-			fmt.Printf("Error executing rbd: %s - %s\n", err, out.String())
+			return fmt.Errorf("Failed to map Ceph volume %s with the %s option: %s - %s", v.CephVolume, modeOption, err, out.String())
 		}
 
 		modeFlag := "--rw"
 		if (!v.Writable) {
 			modeFlag = "--read-only"
 		}
-		fmt.Printf("Mounting %s to %s on host as %s\n", v.CephDevice, v.Path, modeFlag)
+		log.Infof("Mounting Ceph device %s to %s with the %s flag", v.CephDevice, v.Path, modeFlag)
 		cmd = exec.Command("mount", modeFlag, v.CephDevice, v.Path)
 		out.Reset()
 		cmd.Stderr = &out
 		err = cmd.Run()
 		if err == nil {
-			fmt.Printf("Succeeded mounting\n")
+			log.Infof("Succeeded in mounting Ceph device %s to %s with the %s flag", v.CephDevice, v.Path, modeFlag)
 		} else {
-			fmt.Printf("Error mounting: %s - %s\n", err, out.String())
+			//TODO: Attempt to unmap
+			return fmt.Errorf("Failed to mount Ceph device %s to %s with the %s flag: %s - %s", v.CephDevice, v.Path, modeFlag, err, out.String())
 		}
 	}
 
@@ -289,7 +290,6 @@ func parseBindMountSpec(spec string) (string, string, bool, bool, error) {
 	}
 
 	mountToPath = filepath.Clean(mountToPath)
-	fmt.Printf("Volume bind: %s : %s : %s : %s\n", path, mountToPath, writable, ceph)
 	return path, mountToPath, writable, ceph, nil
 }
 

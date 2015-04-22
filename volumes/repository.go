@@ -59,7 +59,6 @@ func (r *Repository) newVolume(path string, writable bool, ceph bool) (*Volume, 
 		cephDevice = "/dev/rbd/rbd/" + cephVolume //TODO: Allow for this to be overridden by an environment variable? TODO: This might not actually be the correct path, if the volume is mapped multiple times. How to get the device number (e.g. /dev/rbd0)?
 		path = "/var/lib/docker/cephmount-" + cephVolume //TODO: Use m.container.basefs?
 		//TODO: Might want to check the directory for existence and retry if it does exist and is nonempty (or already has something mounted to it)
-		fmt.Printf("Ceph: %s -> %s -> %s\n", cephVolume, cephDevice, path)
 	} else {
 		isBindMount = true
 		path = filepath.Clean(path)
@@ -203,7 +202,6 @@ func (r *Repository) FindOrCreateVolume(path string, writable bool, ceph bool) (
 		checkpath = "/var/lib/docker/cephmount-" + path
 	}
 	if v := r.get(checkpath); v != nil {
-		fmt.Printf("Volume %s already exists: %s %s\n", checkpath, v.CephVolume, v.CephDevice)
 		return v, nil
 	}
 
