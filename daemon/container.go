@@ -647,20 +647,24 @@ func (container *Container) cleanup() {
 			log.Errorf("Failed to unmount %s from %s: %s - %s", cephDevice, path, err, out.String())
 		}
 
-		log.Infof("Unmapping Ceph volume from %s", cephDevice)
-		cmd = exec.Command("rbd", "unmap", cephDevice)
-		out.Reset()
-		cmd.Stderr = &out
-		err = cmd.Run()
-		if err == nil {
-			log.Infof("Succeeded in unmapping Ceph volume from %s", cephDevice)
-		} else {
-			log.Errorf("Failed to unmap Ceph volume from %s: %s - %s", cephDevice, err, out.String())
-		}
+		UnmapCephDevice(cephDevice)
 	}
 
 	for _, eConfig := range container.execCommands.s {
 		container.daemon.unregisterExecCommand(eConfig)
+	}
+}
+
+func UnmapCephDevice(cephDevice string) {
+	log.Infof("Unmapping Ceph volume from %s", cephDevice)
+	cmd := exec.Command("rbd", "unmap", cephDevice)
+	var out bytes.Buffer
+	cmd.Stderr = &out
+	err := cmd.Run()
+	if err == nil {
+		log.Infof("Succeeded in unmapping Ceph volume from %s", cephDevice)
+	} else {
+		log.Errorf("Failed to unmap Ceph volume from %s: %s - %s", cephDevice, err, out.String())
 	}
 }
 

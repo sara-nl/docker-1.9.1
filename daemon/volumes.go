@@ -112,7 +112,8 @@ func (m *Mount) initialize(isStarting bool) error {
 		if err == nil {
 			log.Infof("Succeeded in mounting Ceph device %s to %s with the %s flag", v.CephDevice, v.Path, modeFlag)
 		} else {
-			//TODO: Attempt to unmap
+			log.Warnf("Failed to mount Ceph device %s; will attempt to unmap it", v.CephDevice)
+			UnmapCephDevice(v.CephDevice)
 			return fmt.Errorf("Failed to mount Ceph device %s to %s with the %s flag: %s - %s", v.CephDevice, v.Path, modeFlag, err, out.String())
 		}
 	}
