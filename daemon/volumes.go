@@ -97,7 +97,9 @@ func (m *Mount) initialize(isStarting bool) error {
 		if err == nil {
 			log.Infof("Succeeded in mapping Ceph volume %s with the %s option", v.CephVolume, modeOption)
 		} else {
-			return fmt.Errorf("Failed to map Ceph volume %s with the %s option: %s - %s", v.CephVolume, modeOption, err, out.String())
+			msg := fmt.Sprintf("Failed to map Ceph volume %s with the %s option: %s - %s", v.CephVolume, modeOption, err, out.String())
+			log.Errorf(msg)
+			return fmt.Errorf(msg)
 		}
 
 		modeFlag := "--rw"
@@ -112,9 +114,10 @@ func (m *Mount) initialize(isStarting bool) error {
 		if err == nil {
 			log.Infof("Succeeded in mounting Ceph device %s to %s with the %s flag", v.CephDevice, v.Path, modeFlag)
 		} else {
-			log.Warnf("Failed to mount Ceph device %s; will attempt to unmap it", v.CephDevice)
+			msg := fmt.Sprintf("Failed to mount Ceph device %s to %s with the %s flag (will attempt to unmap the volume): %s - %s", v.CephDevice, v.Path, modeFlag, err, out.String())
+			log.Errorf(msg)
 			UnmapCephDevice(v.CephDevice)
-			return fmt.Errorf("Failed to mount Ceph device %s to %s with the %s flag: %s - %s", v.CephDevice, v.Path, modeFlag, err, out.String())
+			return fmt.Errorf(msg)
 		}
 	}
 
