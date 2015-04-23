@@ -644,7 +644,7 @@ func (container *Container) cleanup() {
 		if err == nil {
 			log.Infof("Succeeded in unmounting %s from %s", cephDevice, path)
 		} else {
-			log.Errorf("Failed to unmount %s from %s: %s - %s", cephDevice, path, err, out.String())
+			log.Errorf("Failed to unmount %s from %s: %s - %s", cephDevice, path, err, strings.TrimRight(out.String(), "\n"))
 		}
 
 		UnmapCephDevice(cephDevice)
@@ -664,7 +664,7 @@ func UnmapCephDevice(cephDevice string) {
 	if err == nil {
 		log.Infof("Succeeded in unmapping Ceph volume from %s", cephDevice)
 	} else {
-		log.Errorf("Failed to unmap Ceph volume from %s: %s - %s", cephDevice, err, out.String())
+		log.Errorf("Failed to unmap Ceph volume from %s: %s - %s", cephDevice, err, strings.TrimRight(out.String(), "\n"))
 	}
 }
 
