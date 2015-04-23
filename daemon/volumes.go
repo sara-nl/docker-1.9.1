@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"os/exec"
+	"bytes"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/daemon/execdriver"
@@ -22,6 +24,7 @@ type Mount struct {
 	container   *Container
 	volume      *volumes.Volume
 	Writable    bool
+	Ceph        bool
 	copyData    bool
 	from        *Container
 	isBind      bool
@@ -39,13 +42,14 @@ func (mnt *Mount) Export(resource string) (io.ReadCloser, error) {
 	return mnt.volume.Export(path, name)
 }
 
-func (container *Container) prepareVolumes() error {
+func (container *Container) prepareVolumes(isStarting bool) error {
 	if container.Volumes == nil || len(container.Volumes) == 0 {
 		container.Volumes = make(map[string]string)
 		container.VolumesRW = make(map[string]bool)
+		container.VolumesCephDevice = make(map[string]string)
 	}
 
-	return container.createVolumes()
+	return container.createVolumes(isStarting)
 }
 
 // sortedVolumeMounts returns the list of container volume mount points sorted in lexicographic order
@@ -59,23 +63,64 @@ func (container *Container) sortedVolumeMounts() []string {
 	return mountPaths
 }
 
-func (container *Container) createVolumes() error {
+func (container *Container) createVolumes(isStarting bool) error {
 	mounts, err := container.parseVolumeMountConfig()
 	if err != nil {
 		return err
 	}
 
 	for _, mnt := range mounts {
-		if err := mnt.initialize(); err != nil {
+		if err := mnt.initialize(isStarting); err != nil {
 			return err
 		}
 	}
 
 	// On every start, this will apply any new `VolumesFrom` entries passed in via HostConfig, which may override volumes set in `create`
-	return container.applyVolumesFrom()
+	return container.applyVolumesFrom(isStarting)
 }
 
-func (m *Mount) initialize() error {
+func (m *Mount) initialize(isStarting bool) error {
+	logrus.Infof("Initializing mount: %s -> %s%s (Ceph: %t; is starting: %t)", m.volume.Path, m.container.basefs, m.MountToPath, m.Ceph, isStarting)
+
+	//TODO: Is it correct to do this here, or should we consider the existence check below?
+	v := m.volume
+	if (v.CephVolume != "" && isStarting) {
+		modeOption := "rw"
+		if (!v.Writable) {
+			modeOption = "ro"
+		}
+		logrus.Infof("Mapping Ceph volume %s with the %s option", v.CephVolume, modeOption)
+		cmd := exec.Command("rbd", "map", v.CephVolume, "--options", modeOption)
+		var out bytes.Buffer
+		cmd.Stderr = &out
+		err := cmd.Run()
+		if err == nil {
+			logrus.Infof("Succeeded in mapping Ceph volume %s with the %s option", v.CephVolume, modeOption)
+		} else {
+			msg := fmt.Sprintf("Failed to map Ceph volume %s with the %s option: %s - %s", v.CephVolume, modeOption, err, strings.TrimRight(out.String(), "\n"))
+			logrus.Errorf(msg)
+			return fmt.Errorf(msg)
+		}
+
+		modeFlag := "--rw"
+		if (!v.Writable) {
+			modeFlag = "--read-only"
+		}
+		logrus.Infof("Mounting Ceph device %s to %s with the %s flag", v.CephDevice, v.Path, modeFlag)
+		cmd = exec.Command("mount", modeFlag, v.CephDevice, v.Path)
+		out.Reset()
+		cmd.Stderr = &out
+		err = cmd.Run()
+		if err == nil {
+			logrus.Infof("Succeeded in mounting Ceph device %s to %s with the %s flag", v.CephDevice, v.Path, modeFlag)
+		} else {
+			msg := fmt.Sprintf("Failed to mount Ceph device %s to %s with the %s flag (will attempt to unmap the volume): %s - %s", v.CephDevice, v.Path, modeFlag, err, strings.TrimRight(out.String(), "\n"))
+			logrus.Errorf(msg)
+			UnmapCephDevice(v.CephDevice)
+			return fmt.Errorf(msg)
+		}
+	}
+
 	// No need to initialize anything since it's already been initialized
 	if hostPath, exists := m.container.Volumes[m.MountToPath]; exists {
 		// If this is a bind-mount/volumes-from, maybe it was passed in at start instead of create
@@ -100,8 +145,9 @@ func (m *Mount) initialize() error {
 	if err != nil {
 		return err
 	}
-	m.container.VolumesRW[m.MountToPath] = m.Writable
 	m.container.Volumes[m.MountToPath] = m.volume.Path
+	m.container.VolumesRW[m.MountToPath] = m.Writable
+	m.container.VolumesCephDevice[m.MountToPath] = m.volume.CephDevice
 	m.volume.AddContainer(m.container.ID)
 	if m.Writable && m.copyData {
 		// Copy whatever is in the container at the mntToPath to the volume
@@ -131,7 +177,11 @@ func (container *Container) registerVolumes() {
 		if rw, exists := container.VolumesRW[path]; exists {
 			writable = rw
 		}
-		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable)
+		ceph := false
+		if cephDevice, exists := container.VolumesCephDevice[path]; exists {
+			ceph = cephDevice != ""
+		}
+		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph)
 		if err != nil {
 			logrus.Debugf("error registering volume %s: %v", path, err)
 			continue
@@ -155,7 +205,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 	var mounts = make(map[string]*Mount)
 	// Get all the bind mounts
 	for _, spec := range container.hostConfig.Binds {
-		path, mountToPath, writable, err := parseBindMountSpec(spec)
+		path, mountToPath, writable, ceph, err := parseBindMountSpec(spec)
 		if err != nil {
 			return nil, err
 		}
@@ -164,7 +214,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			return nil, fmt.Errorf("Duplicate volume %q: %q already in use, mounted from %q", path, mountToPath, m.volume.Path)
 		}
 		// Check if a volume already exists for this and use it
-		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable)
+		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph)
 		if err != nil {
 			return nil, err
 		}
@@ -174,6 +224,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			MountToPath: mountToPath,
 			Writable:    writable,
 			isBind:      true, // in case the volume itself is a normal volume, but is being mounted in as a bindmount here
+			Ceph:        ceph,
 		}
 	}
 
@@ -199,7 +250,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			}
 		}
 
-		vol, err := container.daemon.volumes.FindOrCreateVolume("", true)
+		vol, err := container.daemon.volumes.FindOrCreateVolume("", true, false)
 		if err != nil {
 			return nil, err
 		}
@@ -208,6 +259,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			MountToPath: path,
 			volume:      vol,
 			Writable:    true,
+			Ceph:        false,
 			copyData:    true,
 		}
 	}
@@ -215,10 +267,11 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 	return mounts, nil
 }
 
-func parseBindMountSpec(spec string) (string, string, bool, error) {
+func parseBindMountSpec(spec string) (string, string, bool, bool, error) {
 	var (
 		path, mountToPath string
 		writable          bool
+		ceph              bool
 		arr               = strings.Split(spec, ":")
 	)
 
@@ -227,21 +280,26 @@ func parseBindMountSpec(spec string) (string, string, bool, error) {
 		path = arr[0]
 		mountToPath = arr[1]
 		writable = true
+		ceph = false
 	case 3:
 		path = arr[0]
 		mountToPath = arr[1]
-		writable = validMountMode(arr[2]) && arr[2] == "rw"
+		writable, ceph = parseMountOptions(arr[2])
 	default:
-		return "", "", false, fmt.Errorf("Invalid volume specification: %s", spec)
+		return "", "", false, false, fmt.Errorf("Invalid volume specification: %s", spec)
 	}
 
-	if !filepath.IsAbs(path) {
-		return "", "", false, fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
+	//TODO: If ceph, check that path is a valid ceph volume name
+	if !ceph {
+		if !filepath.IsAbs(path) {
+			return "", "", false, false, fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
+		} else {
+			path = filepath.Clean(path)
+		}
 	}
 
-	path = filepath.Clean(path)
 	mountToPath = filepath.Clean(mountToPath)
-	return path, mountToPath, writable, nil
+	return path, mountToPath, writable, ceph, nil
 }
 
 func parseVolumesFromSpec(spec string) (string, string, error) {
@@ -263,7 +321,7 @@ func parseVolumesFromSpec(spec string) (string, string, error) {
 	return id, mode, nil
 }
 
-func (container *Container) applyVolumesFrom() error {
+func (container *Container) applyVolumesFrom(isStarting bool) error {
 	volumesFrom := container.hostConfig.VolumesFrom
 	if len(volumesFrom) > 0 && container.AppliedVolumesFrom == nil {
 		container.AppliedVolumesFrom = make(map[string]struct{})
@@ -302,7 +360,7 @@ func (container *Container) applyVolumesFrom() error {
 		for _, mnt := range mounts {
 			mnt.from = mnt.container
 			mnt.container = container
-			if err := mnt.initialize(); err != nil {
+			if err := mnt.initialize(isStarting); err != nil {
 				return err
 			}
 		}
@@ -318,6 +376,23 @@ func validMountMode(mode string) bool {
 	}
 
 	return validModes[mode]
+}
+
+func parseMountOptions(options string) (bool, bool) {
+	var (
+		writable = false
+		ceph = false
+	)
+	for _, option := range strings.Split(options, ",") {
+		if option == "ro" {
+			writable = false
+		} else if option == "rw" {
+			writable = true
+		} else if option == "ceph" {
+			ceph = true
+		}
+	}
+	return writable, ceph
 }
 
 func (container *Container) setupMounts() error {

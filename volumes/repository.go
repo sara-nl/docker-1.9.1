@@ -39,23 +39,30 @@ func NewRepository(configPath string, driver graphdriver.Driver) (*Repository, e
 	return repo, repo.restore()
 }
 
-func (r *Repository) newVolume(path string, writable bool) (*Volume, error) {
+func (r *Repository) newVolume(path string, writable bool, ceph bool) (*Volume, error) {
 	var (
 		isBindMount bool
 		err         error
 		id          = stringid.GenerateRandomID()
 	)
-	if path != "" {
-		isBindMount = true
-	}
 
+	cephVolume := ""
+	cephDevice := ""
 	if path == "" {
 		path, err = r.createNewVolumePath(id)
 		if err != nil {
 			return nil, err
 		}
+	} else if ceph {
+		isBindMount = true
+		cephVolume = path
+		cephDevice = "/dev/rbd/rbd/" + cephVolume //TODO: Allow for this to be overridden by an environment variable? TODO: This might not actually be the correct path, if the volume is mapped multiple times. How to get the device number (e.g. /dev/rbd0)?
+		path = "/var/lib/docker/cephmount-" + cephVolume //TODO: Use m.container.basefs?
+		//TODO: Might want to check the directory for existence and retry if it does exist and is nonempty (or already has something mounted to it)
+	} else {
+		isBindMount = true
+		path = filepath.Clean(path)
 	}
-	path = filepath.Clean(path)
 
 	// Ignore the error here since the path may not exist
 	// Really just want to make sure the path we are using is real(or non-existant)
@@ -68,6 +75,8 @@ func (r *Repository) newVolume(path string, writable bool) (*Volume, error) {
 		Path:        path,
 		repository:  r,
 		Writable:    writable,
+		CephVolume:  cephVolume,
+		CephDevice:  cephDevice,
 		containers:  make(map[string]struct{}),
 		configPath:  r.configPath + "/" + id,
 		IsBindMount: isBindMount,
@@ -177,17 +186,22 @@ func (r *Repository) createNewVolumePath(id string) (string, error) {
 	return path, nil
 }
 
-func (r *Repository) FindOrCreateVolume(path string, writable bool) (*Volume, error) {
+func (r *Repository) FindOrCreateVolume(path string, writable bool, ceph bool) (*Volume, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
 	if path == "" {
-		return r.newVolume(path, writable)
+		return r.newVolume(path, writable, ceph)
 	}
 
-	if v := r.get(path); v != nil {
+	//HACK: Handle the ceph rewriting in one place
+	checkpath := path
+	if (ceph) {
+		checkpath = "/var/lib/docker/cephmount-" + path
+	}
+	if v := r.get(checkpath); v != nil {
 		return v, nil
 	}
 
-	return r.newVolume(path, writable)
+	return r.newVolume(path, writable, ceph)
 }
