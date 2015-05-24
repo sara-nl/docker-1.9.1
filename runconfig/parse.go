@@ -273,6 +273,15 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		return nil, nil, cmd, fmt.Errorf("--pid: invalid PID mode")
 	}
 
+	labelsMap := convertKVStringsToMap(labels)
+
+	ip4Address, hasIpLabel := labelsMap["ip-address"]
+	if  hasIpLabel {
+		routedMod := "routed"
+		flNetMode = &routedMod
+		flIp4Address = &ip4Address
+	}
+
 	netMode, err := parseNetMode(*flNetMode)
 	if err != nil {
 		return nil, nil, cmd, fmt.Errorf("--net: invalid net mode: %v", err)
@@ -303,7 +312,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		Entrypoint:      entrypoint,
 		WorkingDir:      *flWorkingDir,
 		Ip4Address:      *flIp4Address,
-		Labels:          convertKVStringsToMap(labels),
+		Labels:          labelsMap,
 	}
 
 	hostConfig := &HostConfig{
