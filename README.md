@@ -17,6 +17,10 @@ Start the container using the routed network mode and setting the IP4 address wi
 
     % docker run -ti --net=routed --ip-address=10.1.2.3/32 ubuntu /bin/bash
 
+Also labels can be used to use the routed network mode, this allows to use the standard docker cli.
+
+    % docker run -ti --label ip-address=10.1.2.3/32 ubuntu /bin/bash
+
 ## Contact us
 
 Give it a try and reach us in [docker@medallia.com](mailto:docker@medallia.com)
