@@ -206,7 +206,7 @@ func (r *Repository) FindOrCreateVolume(path string, writable bool, driver strin
 	if (driver == "ceph") {
 		checkpath = "/var/lib/docker/cephmount-" + path
 	} else if (driver == "nfs") {
-		checkpath = "/var/lib/docker/nfsmount-" + path
+		checkpath = "/var/lib/docker/nfsmount-" + strings.Replace(strings.Replace(path, ":", "", -1), "/", "", -1)
 	}
 	if v := r.get(checkpath); v != nil {
 		return v, nil

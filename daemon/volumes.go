@@ -81,10 +81,10 @@ func (container *Container) createVolumes(isStarting bool) error {
 }
 
 func (m *Mount) initialize(isStarting bool) error {
-	logrus.Infof("Initializing mount: %s -> %s%s (driver: %s; is starting: %t)", m.volume.Path, m.container.basefs, m.MountToPath, m.Driver, isStarting)
+	v := m.volume
+	logrus.Infof("Initializing mount: %s -> %s%s (driver: %s; is starting: %t)", v.Path, m.container.basefs, m.MountToPath, v.Driver, isStarting)
 
 	//TODO: Is it correct to do this here, or should we consider the existence check below?
-	v := m.volume
 	if v.Driver == "ceph" && isStarting {
 		modeOption := "rw"
 		if (!v.Writable) {
@@ -229,7 +229,6 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			MountToPath: mountToPath,
 			Writable:    writable,
 			isBind:      true, // in case the volume itself is a normal volume, but is being mounted in as a bindmount here
-			Driver:      driver,
 		}
 	}
 
@@ -264,7 +263,6 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			MountToPath: path,
 			volume:      vol,
 			Writable:    true,
-			Driver:      "",
 			copyData:    true,
 		}
 	}
