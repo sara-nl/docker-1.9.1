@@ -17,8 +17,9 @@ import (
 type Volume struct {
 	ID          string
 	Path        string
-	CephVolume  string
-	CephDevice  string
+	Driver      string
+	DriverDevice string
+	DriverVolume string
 	IsBindMount bool
 	Writable    bool
 	containers  map[string]struct{}
@@ -93,10 +94,12 @@ func (v *Volume) initialize() error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
-	if (v.CephVolume == "") {
-		log.Infof("Initializing volume: %s", v.Path)
+	if v.Driver == "ceph" {
+		log.Infof("Initializing Ceph volume: %s -> %s -> %s", v.DriverVolume, v.DriverDevice, v.Path)
+	} else if (v.Driver == "nfs") {
+		log.Infof("Initializing NFS volume: %s -> %s", v.DriverDevice, v.Path)
 	} else {
-		log.Infof("Initializing Ceph volume: %s -> %s -> %s", v.CephVolume, v.CephDevice, v.Path)
+		log.Infof("Initializing volume: %s", v.Path)
 	}
 
 	if _, err := os.Stat(v.Path); err != nil {

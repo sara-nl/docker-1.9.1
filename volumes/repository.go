@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/Sirupsen/logrus"
@@ -39,26 +40,31 @@ func NewRepository(configPath string, driver graphdriver.Driver) (*Repository, e
 	return repo, repo.restore()
 }
 
-func (r *Repository) newVolume(path string, writable bool, ceph bool) (*Volume, error) {
+func (r *Repository) newVolume(path string, writable bool, driver string) (*Volume, error) {
 	var (
 		isBindMount bool
 		err         error
 		id          = stringid.GenerateRandomID()
 	)
 
-	cephVolume := ""
-	cephDevice := ""
+	driverVolume := ""
+	driverDevice := ""
 	if path == "" {
 		path, err = r.createNewVolumePath(id)
 		if err != nil {
 			return nil, err
 		}
-	} else if ceph {
+	} else if driver == "ceph" {
 		isBindMount = true
-		cephVolume = path
-		cephDevice = "/dev/rbd/rbd/" + cephVolume //TODO: Allow for this to be overridden by an environment variable? TODO: This might not actually be the correct path, if the volume is mapped multiple times. How to get the device number (e.g. /dev/rbd0)?
-		path = "/var/lib/docker/cephmount-" + cephVolume //TODO: Use m.container.basefs?
+		driverVolume = path
+		driverDevice = "/dev/rbd/rbd/" + driverVolume //TODO: Allow for this to be overridden by an environment variable? TODO: This might not actually be the correct path, if the volume is mapped multiple times. How to get the device number (e.g. /dev/rbd0)?
+		path = "/var/lib/docker/cephmount-" + driverVolume //TODO: Use m.container.basefs?
 		//TODO: Might want to check the directory for existence and retry if it does exist and is nonempty (or already has something mounted to it)
+	} else if driver == "nfs" {
+		isBindMount = true
+		driverVolume = ""
+		driverDevice = path
+		path = "/var/lib/docker/nfsmount-" + strings.Replace(strings.Replace(driverDevice, ":", "", -1), "/", "", -1) //TODO: Use some form of escaping instead, to avoid potential collisions?
 	} else {
 		isBindMount = true
 		path = filepath.Clean(path)
@@ -75,8 +81,9 @@ func (r *Repository) newVolume(path string, writable bool, ceph bool) (*Volume, 
 		Path:        path,
 		repository:  r,
 		Writable:    writable,
-		CephVolume:  cephVolume,
-		CephDevice:  cephDevice,
+		Driver:      driver,
+		DriverVolume: driverVolume,
+		DriverDevice: driverDevice,
 		containers:  make(map[string]struct{}),
 		configPath:  r.configPath + "/" + id,
 		IsBindMount: isBindMount,
@@ -186,22 +193,24 @@ func (r *Repository) createNewVolumePath(id string) (string, error) {
 	return path, nil
 }
 
-func (r *Repository) FindOrCreateVolume(path string, writable bool, ceph bool) (*Volume, error) {
+func (r *Repository) FindOrCreateVolume(path string, writable bool, driver string) (*Volume, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
 	if path == "" {
-		return r.newVolume(path, writable, ceph)
+		return r.newVolume(path, writable, driver)
 	}
 
 	//HACK: Handle the ceph rewriting in one place
 	checkpath := path
-	if (ceph) {
+	if (driver == "ceph") {
 		checkpath = "/var/lib/docker/cephmount-" + path
+	} else if (driver == "nfs") {
+		checkpath = "/var/lib/docker/nfsmount-" + strings.Replace(strings.Replace(path, ":", "", -1), "/", "", -1)
 	}
 	if v := r.get(checkpath); v != nil {
 		return v, nil
 	}
 
-	return r.newVolume(path, writable, ceph)
+	return r.newVolume(path, writable, driver)
 }
