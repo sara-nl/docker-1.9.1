@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/Sirupsen/logrus"
@@ -61,9 +62,9 @@ func (r *Repository) newVolume(path string, writable bool, driver string) (*Volu
 		//TODO: Might want to check the directory for existence and retry if it does exist and is nonempty (or already has something mounted to it)
 	} else if driver == "nfs" {
 		isBindMount = true
-		driverVolume = path
-		driverDevice = ""
-		path = "/var/lib/docker/nfsmount-" + driverVolume
+		driverVolume = ""
+		driverDevice = path
+		path = "/var/lib/docker/nfsmount-" + strings.Replace(strings.Replace(driverDevice, ":", "", -1), "/", "", -1) //TODO: Use some form of escaping instead, to avoid potential collisions?
 	} else {
 		isBindMount = true
 		path = filepath.Clean(path)
@@ -80,6 +81,7 @@ func (r *Repository) newVolume(path string, writable bool, driver string) (*Volu
 		Path:        path,
 		repository:  r,
 		Writable:    writable,
+		Driver:      driver,
 		DriverVolume: driverVolume,
 		DriverDevice: driverDevice,
 		containers:  make(map[string]struct{}),
