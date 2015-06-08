@@ -697,27 +697,31 @@ func (container *Container) cleanup() {
 		logrus.Errorf("%v: Failed to umount filesystem: %v", container.ID, err)
 	}
 
-	// I think this is the correct place for RBD unmounting and unmaping, rather than Container.Unmount(), which is called in a lot of other situations too.
+	// I think this is the correct place for RBD/NFS unmounting and unmaping, rather than Container.Unmount(), which is called in a lot of other situations too.
 	// Container.cleanup() is only called by Container.Start(), which is the only place that calls Container.prepareVolumes(true),
-	// which is the only way to trigger Mount.initialize(true), which is currently where we perform the RBD mapping and mounting.
+	// which is the only way to trigger Mount.initialize(true), which is currently where we perform the RBD/NFS mapping and mounting.
 	for mountToPath, path := range container.Volumes {
-		cephDevice := container.VolumesCephDevice[mountToPath]
-		if cephDevice == "" {
+		driver := container.VolumesDriver[mountToPath]
+		device := container.VolumesDevice[mountToPath]
+		if driver == "" || device == "" {
 			continue
 		}
 
-		logrus.Infof("Unmounting %s from %s", cephDevice, path)
+		logrus.Infof("Unmounting %s device %s from %s", driver, device, path)
 		cmd := exec.Command("umount", path)
 		var out bytes.Buffer
 		cmd.Stderr = &out
 		err := cmd.Run()
 		if err == nil {
-			logrus.Infof("Succeeded in unmounting %s from %s", cephDevice, path)
+			logrus.Infof("Succeeded in unmounting %s device %s from %s", driver, device, path)
 		} else {
-			logrus.Errorf("Failed to unmount %s from %s: %s - %s", cephDevice, path, err, strings.TrimRight(out.String(), "\n"))
+			logrus.Errorf("Failed to unmount %s device %s from %s: %s - %s", driver, device, path, err, strings.TrimRight(out.String(), "\n"))
 		}
 
-		UnmapCephDevice(cephDevice)
+		if driver == "ceph" {
+			UnmapCephDevice(device)
+		}
+		// Note that NFS doesn't require unmapping
 	}
 
 	for _, eConfig := range container.execCommands.s {

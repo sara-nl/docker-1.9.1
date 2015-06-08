@@ -24,7 +24,7 @@ type Mount struct {
 	container   *Container
 	volume      *volumes.Volume
 	Writable    bool
-	Driver      bool
+	Driver      string
 	copyData    bool
 	from        *Container
 	isBind      bool
@@ -46,7 +46,8 @@ func (container *Container) prepareVolumes(isStarting bool) error {
 	if container.Volumes == nil || len(container.Volumes) == 0 {
 		container.Volumes = make(map[string]string)
 		container.VolumesRW = make(map[string]bool)
-		container.VolumesCephDevice = make(map[string]string)
+		container.VolumesDevice = make(map[string]string)
+		container.VolumesDriver = make(map[string]string)
 	}
 
 	return container.createVolumes(isStarting)
@@ -80,43 +81,47 @@ func (container *Container) createVolumes(isStarting bool) error {
 }
 
 func (m *Mount) initialize(isStarting bool) error {
-	logrus.Infof("Initializing mount: %s -> %s%s (Ceph: %t; is starting: %t)", m.volume.Path, m.container.basefs, m.MountToPath, m.Ceph, isStarting)
+	logrus.Infof("Initializing mount: %s -> %s%s (driver: %s; is starting: %t)", m.volume.Path, m.container.basefs, m.MountToPath, m.Driver, isStarting)
 
 	//TODO: Is it correct to do this here, or should we consider the existence check below?
 	v := m.volume
-	if (v.CephVolume != "" && isStarting) {
+	if v.Driver == "ceph" && isStarting {
 		modeOption := "rw"
 		if (!v.Writable) {
 			modeOption = "ro"
 		}
-		logrus.Infof("Mapping Ceph volume %s with the %s option", v.CephVolume, modeOption)
-		cmd := exec.Command("rbd", "map", v.CephVolume, "--options", modeOption)
+		logrus.Infof("Mapping Ceph volume %s with the %s option", v.DriverVolume, modeOption)
+		cmd := exec.Command("rbd", "map", v.DriverVolume, "--options", modeOption)
 		var out bytes.Buffer
 		cmd.Stderr = &out
 		err := cmd.Run()
 		if err == nil {
-			logrus.Infof("Succeeded in mapping Ceph volume %s with the %s option", v.CephVolume, modeOption)
+			logrus.Infof("Succeeded in mapping Ceph volume %s with the %s option", v.DriverVolume, modeOption)
 		} else {
-			msg := fmt.Sprintf("Failed to map Ceph volume %s with the %s option: %s - %s", v.CephVolume, modeOption, err, strings.TrimRight(out.String(), "\n"))
+			msg := fmt.Sprintf("Failed to map Ceph volume %s with the %s option: %s - %s", v.DriverVolume, modeOption, err, strings.TrimRight(out.String(), "\n"))
 			logrus.Errorf(msg)
 			return fmt.Errorf(msg)
 		}
+	}
 
+	if (v.Driver == "ceph" || v.Driver == "nfs") && isStarting {
 		modeFlag := "--rw"
-		if (!v.Writable) {
+		if !v.Writable {
 			modeFlag = "--read-only"
 		}
-		logrus.Infof("Mounting Ceph device %s to %s with the %s flag", v.CephDevice, v.Path, modeFlag)
-		cmd = exec.Command("mount", modeFlag, v.CephDevice, v.Path)
-		out.Reset()
+		logrus.Infof("Mounting %s device %s to %s with the %s flag", v.Driver, v.DriverDevice, v.Path, modeFlag)
+		cmd := exec.Command("mount", modeFlag, v.DriverDevice, v.Path)
+		var out bytes.Buffer
 		cmd.Stderr = &out
-		err = cmd.Run()
+		err := cmd.Run()
 		if err == nil {
-			logrus.Infof("Succeeded in mounting Ceph device %s to %s with the %s flag", v.CephDevice, v.Path, modeFlag)
+			logrus.Infof("Succeeded in mounting %s device %s to %s with the %s flag", v.Driver, v.DriverDevice, v.Path, modeFlag)
 		} else {
-			msg := fmt.Sprintf("Failed to mount Ceph device %s to %s with the %s flag (will attempt to unmap the volume): %s - %s", v.CephDevice, v.Path, modeFlag, err, strings.TrimRight(out.String(), "\n"))
+			msg := fmt.Sprintf("Failed to mount %s device %s to %s with the %s flag (will attempt to unmap the volume): %s - %s", v.Driver, v.DriverDevice, v.Path, modeFlag, err, strings.TrimRight(out.String(), "\n"))
 			logrus.Errorf(msg)
-			UnmapCephDevice(v.CephDevice)
+			if v.Driver == "ceph" {
+				UnmapCephDevice(v.DriverDevice)
+			}
 			return fmt.Errorf(msg)
 		}
 	}
@@ -147,7 +152,8 @@ func (m *Mount) initialize(isStarting bool) error {
 	}
 	m.container.Volumes[m.MountToPath] = m.volume.Path
 	m.container.VolumesRW[m.MountToPath] = m.Writable
-	m.container.VolumesCephDevice[m.MountToPath] = m.volume.CephDevice
+	m.container.VolumesDevice[m.MountToPath] = m.volume.DriverDevice
+	m.container.VolumesDriver[m.MountToPath] = m.volume.Driver
 	m.volume.AddContainer(m.container.ID)
 	if m.Writable && m.copyData {
 		// Copy whatever is in the container at the mntToPath to the volume
@@ -258,7 +264,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			MountToPath: path,
 			volume:      vol,
 			Writable:    true,
-			Ceph:        false,
+			Driver:      "",
 			copyData:    true,
 		}
 	}
@@ -291,12 +297,12 @@ func parseBindMountSpec(spec string) (string, string, bool, string, error) {
 	//TODO: If ceph, check that path is a valid ceph volume name
 	if driver == "" {
 		if !filepath.IsAbs(path) {
-			return "", "", false, false, fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
+			return "", "", false, "", fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
 		} else {
 			path = filepath.Clean(path)
 		}
 	} else if driver == "nfs" {
-		path = path.Replace("/", ":/", 1)
+		path = strings.Replace(path, "/", ":/", 1)
 	}
 
 	mountToPath = filepath.Clean(mountToPath)
@@ -379,7 +385,7 @@ func validMountMode(mode string) bool {
 	return validModes[mode]
 }
 
-func parseMountOptions(options string) (bool, bool) {
+func parseMountOptions(options string) (bool, string) {
 	var (
 		writable = false
 		driver = ""
