@@ -24,7 +24,7 @@ type Mount struct {
 	container   *Container
 	volume      *volumes.Volume
 	Writable    bool
-	Ceph        bool
+	Driver      bool
 	copyData    bool
 	from        *Container
 	isBind      bool
@@ -177,11 +177,7 @@ func (container *Container) registerVolumes() {
 		if rw, exists := container.VolumesRW[path]; exists {
 			writable = rw
 		}
-		ceph := false
-		if cephDevice, exists := container.VolumesCephDevice[path]; exists {
-			ceph = cephDevice != ""
-		}
-		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph)
+		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, container.VolumesDriver[path])
 		if err != nil {
 			logrus.Debugf("error registering volume %s: %v", path, err)
 			continue
@@ -205,16 +201,19 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 	var mounts = make(map[string]*Mount)
 	// Get all the bind mounts
 	for _, spec := range container.hostConfig.Binds {
-		path, mountToPath, writable, ceph, err := parseBindMountSpec(spec)
+		path, mountToPath, writable, driver, err := parseBindMountSpec(spec)
 		if err != nil {
 			return nil, err
+		}
+		if (!(driver == "" || driver == "nfs" || driver == "ceph")) {
+			return nil, fmt.Errorf("Unrecognized volume driver '%s'", driver)
 		}
 		// Check if a bind mount has already been specified for the same container path
 		if m, exists := mounts[mountToPath]; exists {
 			return nil, fmt.Errorf("Duplicate volume %q: %q already in use, mounted from %q", path, mountToPath, m.volume.Path)
 		}
 		// Check if a volume already exists for this and use it
-		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable, ceph)
+		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable, driver)
 		if err != nil {
 			return nil, err
 		}
@@ -224,7 +223,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			MountToPath: mountToPath,
 			Writable:    writable,
 			isBind:      true, // in case the volume itself is a normal volume, but is being mounted in as a bindmount here
-			Ceph:        ceph,
+			Driver:      driver,
 		}
 	}
 
@@ -250,7 +249,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			}
 		}
 
-		vol, err := container.daemon.volumes.FindOrCreateVolume("", true, false)
+		vol, err := container.daemon.volumes.FindOrCreateVolume("", true, "")
 		if err != nil {
 			return nil, err
 		}
@@ -267,11 +266,11 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 	return mounts, nil
 }
 
-func parseBindMountSpec(spec string) (string, string, bool, bool, error) {
+func parseBindMountSpec(spec string) (string, string, bool, string, error) {
 	var (
 		path, mountToPath string
 		writable          bool
-		ceph              bool
+		driver            string
 		arr               = strings.Split(spec, ":")
 	)
 
@@ -280,26 +279,28 @@ func parseBindMountSpec(spec string) (string, string, bool, bool, error) {
 		path = arr[0]
 		mountToPath = arr[1]
 		writable = true
-		ceph = false
+		driver = ""
 	case 3:
 		path = arr[0]
 		mountToPath = arr[1]
-		writable, ceph = parseMountOptions(arr[2])
+		writable, driver = parseMountOptions(arr[2])
 	default:
-		return "", "", false, false, fmt.Errorf("Invalid volume specification: %s", spec)
+		return "", "", false, "", fmt.Errorf("Invalid volume specification: %s", spec)
 	}
 
 	//TODO: If ceph, check that path is a valid ceph volume name
-	if !ceph {
+	if driver == "" {
 		if !filepath.IsAbs(path) {
 			return "", "", false, false, fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
 		} else {
 			path = filepath.Clean(path)
 		}
+	} else if driver == "nfs" {
+		path = path.Replace("/", ":/", 1)
 	}
 
 	mountToPath = filepath.Clean(mountToPath)
-	return path, mountToPath, writable, ceph, nil
+	return path, mountToPath, writable, driver, nil
 }
 
 func parseVolumesFromSpec(spec string) (string, string, error) {
@@ -381,18 +382,18 @@ func validMountMode(mode string) bool {
 func parseMountOptions(options string) (bool, bool) {
 	var (
 		writable = false
-		ceph = false
+		driver = ""
 	)
 	for _, option := range strings.Split(options, ",") {
 		if option == "ro" {
 			writable = false
 		} else if option == "rw" {
 			writable = true
-		} else if option == "ceph" {
-			ceph = true
+		} else {
+			driver = option
 		}
 	}
-	return writable, ceph
+	return writable, driver
 }
 
 func (container *Container) setupMounts() error {

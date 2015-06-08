@@ -101,7 +101,8 @@ type Container struct {
 	// Store rw/ro in a separate structure to preserve reverse-compatibility on-disk.
 	// Easier than migrating older container configs :)
 	VolumesRW  map[string]bool
-	VolumesCephDevice map[string]string
+	VolumesDevice map[string]string
+	VolumesDriver map[string]string
 	hostConfig *runconfig.HostConfig
 
 	activeLinks  map[string]*links.Link

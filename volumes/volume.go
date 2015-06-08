@@ -17,8 +17,8 @@ import (
 type Volume struct {
 	ID          string
 	Path        string
-	CephVolume  string
-	CephDevice  string
+	DriverVolume string
+	DriverDevice string
 	IsBindMount bool
 	Writable    bool
 	containers  map[string]struct{}
