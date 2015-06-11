@@ -54,6 +54,9 @@ func (v *Routed) create(n *network, nspid int) error {
 	}
 	
 	AddRoute(n.Address, "", "", n.HostInterfaceName)
+	for _, secondaryAddress := range n.SecondaryAddresses {
+		AddRoute(secondaryAddress, "", "", n.HostInterfaceName)
+	}
 	
 	return 	netlink.NetworkSetNsPid(child, nspid)
 
@@ -78,8 +81,13 @@ func (v *Routed) initialize(config *network) error {
 			return fmt.Errorf("set %s mac %s", defaultDevice, err)
 		}
 	}
-	if err := SetInterfaceIp(defaultDevice, config.Address); err != nil {
-		return fmt.Errorf("set %s ip %s", defaultDevice, err)
+	if err := AddInterfaceIp(defaultDevice, config.Address); err != nil {
+		return fmt.Errorf("add %s ip %s", defaultDevice, err)
+	}
+	for _, secondaryAddress := range config.SecondaryAddresses {
+		if err := AddInterfaceIp(defaultDevice, secondaryAddress); err != nil {
+			return fmt.Errorf("add %s secondary ip %s %s", defaultDevice, secondaryAddress, err)
+		}
 	}
 
 	if err := SetMtu(defaultDevice, config.Mtu); err != nil {
@@ -160,8 +168,8 @@ func SetInterfaceMac(name string, macaddr string) error {
 	return netlink.NetworkSetMacAddress(iface, macaddr)
 }
 
-func SetInterfaceIp(name string, rawIp string) error {
-	fmt.Printf("SetInterfaceIp: %s %s\n", name, rawIp)
+func AddInterfaceIp(name string, rawIp string) error {
+	fmt.Printf("AddInterfaceIp: %s %s\n", name, rawIp)
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
 		return err
