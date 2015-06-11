@@ -287,6 +287,7 @@ func populateCommand(c *Container, env []string) error {
 				GlobalIPv6Address:    network.GlobalIPv6Address,
 				GlobalIPv6PrefixLen:  network.GlobalIPv6PrefixLen,
 				IPv6Gateway:          network.IPv6Gateway,
+				SecondaryIPAddresses: network.SecondaryIPAddresses,
 			}
 		}
 	case "container":
@@ -584,7 +585,7 @@ func (container *Container) AllocateNetwork() error {
 		eng = container.daemon.eng
 	)
 
-	networkSettings, err := bridge.Allocate(container.ID, container.Config.MacAddress, container.Config.Ip4Address, "", mode.IsRouted())
+	networkSettings, err := bridge.Allocate(container.ID, container.Config.MacAddress, container.Config.Ip4Address, "", mode.IsRouted(), container.Config.SecondaryIp4Addresses)
 	if err != nil {
 		return err
 	}
@@ -668,7 +669,7 @@ func (container *Container) RestoreNetwork() error {
 	eng := container.daemon.eng
 
 	// Re-allocate the interface with the same IP and MAC address.
-	if _, err := bridge.Allocate(container.ID, container.NetworkSettings.MacAddress, container.NetworkSettings.IPAddress, "", mode.IsRouted()); err != nil {
+	if _, err := bridge.Allocate(container.ID, container.NetworkSettings.MacAddress, container.NetworkSettings.IPAddress, "", mode.IsRouted(), container.NetworkSettings.SecondaryIPAddresses); err != nil {
 		return err
 	}
 

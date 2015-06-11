@@ -14,10 +14,9 @@ import (
 // relying on NAT.
 type Routed struct {
 }
-//	create(*network, int) error
-//	initialize(*network) error
+
+// This is run on the host
 func (v *Routed) create(n *network, nspid int) error {
-	
 	tmpName, err := utils.GenerateRandomName("veth", 7)
 	if err != nil {
 		return err
@@ -53,13 +52,16 @@ func (v *Routed) create(n *network, nspid int) error {
 	}
 	
 	AddRoute(n.Address, "", "", n.HostInterfaceName)
+	for _, secondaryAddress := range n.SecondaryAddresses {
+		AddRoute(secondaryAddress, "", "", n.HostInterfaceName)
+	}
 	
 	return 	netlink.NetworkSetNsPid(child, nspid)
 
 }
 
+// This is run inside the container
 func (v *Routed) initialize(config *network) error {
-
 	var vethChild = config.TempVethPeerName
 	var defaultDevice = config.Name
 	if vethChild == "" {
@@ -76,8 +78,13 @@ func (v *Routed) initialize(config *network) error {
 			return fmt.Errorf("set %s mac %s", defaultDevice, err)
 		}
 	}
-	if err := SetInterfaceIp(defaultDevice, config.Address); err != nil {
-		return fmt.Errorf("set %s ip %s", defaultDevice, err)
+	if err := AddInterfaceIp(defaultDevice, config.Address); err != nil {
+		return fmt.Errorf("add %s ip %s", defaultDevice, err)
+	}
+	for _, secondaryAddress := range config.SecondaryAddresses {
+		if err := AddInterfaceIp(defaultDevice, secondaryAddress); err != nil {
+			return fmt.Errorf("add %s secondary ip %s %s", defaultDevice, secondaryAddress, err)
+		}
 	}
 
 	if err := SetMtu(defaultDevice, config.Mtu); err != nil {
@@ -150,7 +157,7 @@ func SetInterfaceMac(name string, macaddr string) error {
 	return netlink.NetworkSetMacAddress(iface, macaddr)
 }
 
-func SetInterfaceIp(name string, rawIp string) error {
+func AddInterfaceIp(name string, rawIp string) error {
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
 		return err

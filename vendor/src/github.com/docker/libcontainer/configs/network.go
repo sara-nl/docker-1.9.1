@@ -48,6 +48,8 @@ type Network struct {
 	// Note: This is unsupported on some systems.
 	// Note: This does not apply to loopback interfaces.
 	HairpinMode bool `json:"hairpin_mode"`
+
+	SecondaryAddresses []string `json:"secondary_addresses"`
 }
 
 // Routes can be specified to create entries in the route table as the container is started
