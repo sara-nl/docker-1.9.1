@@ -812,7 +812,6 @@ func allocateInterfaceWithStaticIP(id, requestedIP string, requestedSecondaryIPs
 		IPPrefixLen:          size,
 		SecondaryIPAddresses: requestedSecondaryIPs,
 	}
-	fmt.Printf("allocateInterfaceWithStaticIP: %v\n", networkSettings.SecondaryIPAddresses)
 	
 	return networkSettings, nil
 }

@@ -461,7 +461,6 @@ func NetworkLinkDel(name string) error {
 // Bring up a particular network interface.
 // This is identical to running: ip link set dev $name up
 func NetworkLinkUp(iface *net.Interface) error {
-	fmt.Printf("NetworkLinkUp: %s\n", iface.Name)
 	s, err := getNetlinkSocket()
 	if err != nil {
 		return err
@@ -554,7 +553,6 @@ func NetworkSetMacAddress(iface *net.Interface, macaddr string) error {
 // There is a discussion about how to deal with ifcs joining bridge with MTU > 1500
 // Regular network nterfaces do seem to work though!
 func NetworkSetMTU(iface *net.Interface, mtu int) error {
-	fmt.Printf("NetworkSetMTU: %s %d\n", iface.Name, mtu)
 	s, err := getNetlinkSocket()
 	if err != nil {
 		return err
@@ -663,7 +661,6 @@ func networkSetNsAction(iface *net.Interface, rtattr *RtAttr) error {
 // Move a particular network interface to a particular network namespace
 // specified by PID. This is identical to running: ip link set dev $name netns $pid
 func NetworkSetNsPid(iface *net.Interface, nspid int) error {
-	fmt.Printf("NetworkSetNsPid: %s %d\n", iface.Name, nspid)
 	data := uint32Attr(syscall.IFLA_NET_NS_PID, uint32(nspid))
 	return networkSetNsAction(iface, data)
 }
@@ -710,7 +707,6 @@ func NetworkChangeName(iface *net.Interface, newName string) error {
 // Add a new VETH pair link on the host
 // This is identical to running: ip link add name $name type veth peer name $peername
 func NetworkCreateVethPair(name1, name2 string, txQueueLen int) error {
-	fmt.Printf("NetworkCreateVethPair: %s %s, txQueueLen: %d\n", name1, name2, txQueueLen)
 	s, err := getNetlinkSocket()
 	if err != nil {
 		return err

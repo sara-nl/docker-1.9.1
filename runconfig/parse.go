@@ -308,7 +308,6 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		Labels:          convertKVStringsToMap(labels),
 		SecondaryIp4Addresses: flSecondaryIp4Addresses.GetAll(),
 	}
-	fmt.Printf("Parse: %v\n", config.SecondaryIp4Addresses)
 
 	hostConfig := &HostConfig{
 		Binds:           binds,
