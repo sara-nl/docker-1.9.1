@@ -289,6 +289,7 @@ func populateCommand(c *Container, env []string) error {
 				IPv6Gateway:          network.IPv6Gateway,
 				SecondaryIPAddresses: network.SecondaryIPAddresses,
 			}
+			fmt.Printf("populateCommand: %v\n", en.Interface.SecondaryIPAddresses)
 		}
 	case "container":
 		nc, err := c.getNetworkedContainer()
@@ -585,6 +586,7 @@ func (container *Container) AllocateNetwork() error {
 		eng = container.daemon.eng
 	)
 
+	fmt.Printf("AllocateNetwork: %v\n", container.Config.SecondaryIp4Addresses)
 	networkSettings, err := bridge.Allocate(container.ID, container.Config.MacAddress, container.Config.Ip4Address, "", mode.IsRouted(), container.Config.SecondaryIp4Addresses)
 	if err != nil {
 		return err
@@ -669,6 +671,7 @@ func (container *Container) RestoreNetwork() error {
 	eng := container.daemon.eng
 
 	// Re-allocate the interface with the same IP and MAC address.
+	fmt.Printf("RestoreNetwork: %v\n", container.NetworkSettings.SecondaryIPAddresses)
 	if _, err := bridge.Allocate(container.ID, container.NetworkSettings.MacAddress, container.NetworkSettings.IPAddress, "", mode.IsRouted(), container.NetworkSettings.SecondaryIPAddresses); err != nil {
 		return err
 	}

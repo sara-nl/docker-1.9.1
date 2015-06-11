@@ -17,7 +17,7 @@ type Routed struct {
 //	create(*network, int) error
 //	initialize(*network) error
 func (v *Routed) create(n *network, nspid int) error {
-	fmt.Printf("Create: %T\n", n.SecondaryAddresses)
+	fmt.Printf("Create: %v\n", n.SecondaryAddresses)
 	tmpName, err := utils.GenerateRandomName("veth", 7)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func (v *Routed) create(n *network, nspid int) error {
 }
 
 func (v *Routed) initialize(config *network) error {
-	fmt.Printf("Initialize: %T\n", config.SecondaryAddresses)
+	fmt.Printf("Initialize: %v\n", config.SecondaryAddresses)
 	var vethChild = config.TempVethPeerName
 	var defaultDevice = config.Name
 	if vethChild == "" {
