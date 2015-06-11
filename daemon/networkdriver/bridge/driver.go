@@ -554,7 +554,7 @@ func linkLocalIPv6FromMac(mac string) (string, error) {
 }
 
 // Allocate a network interface
-func Allocate(id, requestedMac, requestedIP, requestedIPv6 string, isRoutedNetwork bool) (*network.Settings, error) {
+func Allocate(id, requestedMac, requestedIP, requestedIPv6 string, isRoutedNetwork bool, requestedSecondaryIPs []string) (*network.Settings, error) {
 	var (
 		ip            net.IP
 		mac           net.HardwareAddr
@@ -565,7 +565,7 @@ func Allocate(id, requestedMac, requestedIP, requestedIPv6 string, isRoutedNetwo
 	)
 
 	if isRoutedNetwork {
-		return allocateInterfaceWithStaticIP(id, requestedIP)
+		return allocateInterfaceWithStaticIP(id, requestedIP, requestedSecondaryIPs)
 	}
 
 	ip, err = ipAllocator.RequestIP(bridgeIPv4Network, net.ParseIP(requestedIP))
@@ -780,7 +780,7 @@ func LinkContainers(action, parentIP, childIP string, ports []nat.Port, ignoreEr
 	return nil
 }
 
-func allocateInterfaceWithStaticIP(id, requestedIP string) (*network.Settings, error) {
+func allocateInterfaceWithStaticIP(id, requestedIP string, requestedSecondaryIPs []string) (*network.Settings, error) {
 	var (
 		ip          net.IP
 		ipNet       *net.IPNet
@@ -810,6 +810,7 @@ func allocateInterfaceWithStaticIP(id, requestedIP string) (*network.Settings, e
 //		Mask:                 ipNet.Mask.String(),
 		MacAddress:           generateMacAddr(ip).String(),
 		IPPrefixLen:          size,
+		SecondaryIPAddresses: requestedSecondaryIPs,
 	}
 	
 	return networkSettings, nil

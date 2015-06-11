@@ -48,6 +48,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		flCapDrop     = opts.NewListOpts(nil)
 		flSecurityOpt = opts.NewListOpts(nil)
 		flLabelsFile  = opts.NewListOpts(nil)
+		flSecondaryIp4Addresses = opts.NewListOpts(nil)
 
 		flNetwork         = cmd.Bool([]string{"#n", "#-networking"}, true, "Enable networking for this container")
 		flPrivileged      = cmd.Bool([]string{"#privileged", "-privileged"}, false, "Give extended privileges to this container")
@@ -94,6 +95,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 	cmd.Var(&flCapAdd, []string{"-cap-add"}, "Add Linux capabilities")
 	cmd.Var(&flCapDrop, []string{"-cap-drop"}, "Drop Linux capabilities")
 	cmd.Var(&flSecurityOpt, []string{"-security-opt"}, "Security Options")
+	cmd.Var(&flSecondaryIp4Addresses, []string{"-secondary-ip-address"}, "Add a secondary IP4 address (e.g. 10.2.3.5/32). Can be specified multiple times.")
 	cmd.Var(flUlimits, []string{"-ulimit"}, "Ulimit options")
 
 	cmd.Require(flag.Min, 1)
@@ -304,6 +306,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		WorkingDir:      *flWorkingDir,
 		Ip4Address:      *flIp4Address,
 		Labels:          convertKVStringsToMap(labels),
+		SecondaryIp4Addresses: flSecondaryIp4Addresses.GetAll(),
 	}
 
 	hostConfig := &HostConfig{

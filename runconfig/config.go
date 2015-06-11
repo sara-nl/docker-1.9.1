@@ -125,6 +125,7 @@ type Config struct {
 	OnBuild         []string
 	Ip4Address       string
 	Labels          map[string]string
+	SecondaryIp4Addresses []string
 }
 
 type ContainerConfigWrapper struct {

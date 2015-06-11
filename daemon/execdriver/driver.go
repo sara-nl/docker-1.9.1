@@ -104,6 +104,7 @@ type NetworkInterface struct {
 	LinkLocalIPv6Address string `json:"link_local_ipv6"`
 	GlobalIPv6PrefixLen  int    `json:"global_ipv6_prefix_len"`
 	IPv6Gateway          string `json:"ipv6_gateway"`
+	SecondaryIPAddresses []string `json:"secondary_ips"`
 }
 
 type Resources struct {
