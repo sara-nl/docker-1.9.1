@@ -17,6 +17,7 @@ type Routed struct {
 //	create(*network, int) error
 //	initialize(*network) error
 func (v *Routed) create(n *network, nspid int) error {
+	// This is run by the daemon
 	fmt.Printf("Create: %v\n", n.SecondaryAddresses)
 	tmpName, err := utils.GenerateRandomName("veth", 7)
 	if err != nil {
@@ -59,6 +60,7 @@ func (v *Routed) create(n *network, nspid int) error {
 }
 
 func (v *Routed) initialize(config *network) error {
+	// This is run from inside the container (presumably)
 	fmt.Printf("Initialize: %v\n", config.SecondaryAddresses)
 	var vethChild = config.TempVethPeerName
 	var defaultDevice = config.Name
@@ -96,10 +98,12 @@ func (v *Routed) initialize(config *network) error {
 }
 
 func AddDefaultRoute(ifaceName string) error {
+	fmt.Printf("AddDefaultRoute: %s\n", ifaceName)
 	return AddRoute("0.0.0.0/0", "", "", ifaceName)
 }
 
 func AddRoute(dest string, src string, gw string, ifName string) error {
+	fmt.Printf("AddRoute: dest: %s, src: %s, gw: %s, ifName: %s\n", dest, src, gw, ifName)
 	if _, err := net.InterfaceByName(ifName); err != nil {
 		return err
 	}
@@ -107,6 +111,7 @@ func AddRoute(dest string, src string, gw string, ifName string) error {
 }
 
 func InterfaceUp(name string) error {
+	fmt.Printf("InterfaceUp: %s\n", name)
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
 		return err
@@ -115,6 +120,7 @@ func InterfaceUp(name string) error {
 }
 
 func InterfaceDown(name string) error {
+	fmt.Printf("InterfaceDown: %s\n", name)
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
 		return err
@@ -123,6 +129,7 @@ func InterfaceDown(name string) error {
 }
 
 func ChangeInterfaceName(old, newName string) error {
+	fmt.Printf("ChangeInterfaceName: %s -> %s\n", old, newName)
 	iface, err := net.InterfaceByName(old)
 	if err != nil {
 		return err
@@ -131,10 +138,12 @@ func ChangeInterfaceName(old, newName string) error {
 }
 
 func CreateVethPair(name1, name2 string, txQueueLen int) error {
+	fmt.Printf("CreateVethPair: %s %s, txQueueLen: %d\n", name1, name2, txQueueLen)
 	return netlink.NetworkCreateVethPair(name1, name2, txQueueLen)
 }
 
 func SetInterfaceInNamespacePid(name string, nsPid int) error {
+	fmt.Printf("SetInterfaceInNamespacePid: %s %d\n", name, nsPid)
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
 		return err
@@ -143,6 +152,7 @@ func SetInterfaceInNamespacePid(name string, nsPid int) error {
 }
 
 func SetInterfaceMac(name string, macaddr string) error {
+	fmt.Printf("SetInterfaceMac: %s %s\n", name, macaddr)
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
 		return err
@@ -151,6 +161,7 @@ func SetInterfaceMac(name string, macaddr string) error {
 }
 
 func SetInterfaceIp(name string, rawIp string) error {
+	fmt.Printf("SetInterfaceIp: %s %s\n", name, rawIp)
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
 		return err
@@ -163,6 +174,7 @@ func SetInterfaceIp(name string, rawIp string) error {
 }
 
 func SetMtu(name string, mtu int) error {
+	fmt.Printf("SetMtu: %s %d\n", name, mtu)
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
 		return err
