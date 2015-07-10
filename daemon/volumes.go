@@ -90,15 +90,15 @@ func (m *Mount) initialize(isStarting bool) error {
 		if (!v.Writable) {
 			modeOption = "ro"
 		}
-		logrus.Infof("Mapping Ceph volume %s with the %s option", v.DriverVolume, modeOption)
-		cmd := exec.Command("rbd", "map", v.DriverVolume, "--options", modeOption)
+		logrus.Infof("Mapping Ceph volume %s with the %s option and --no-settle", v.DriverVolume, modeOption)
+		cmd := exec.Command("rbd", "map", v.DriverVolume, "--no-settle", "--options", modeOption)
 		var out bytes.Buffer
 		cmd.Stderr = &out
 		err := cmd.Run()
 		if err == nil {
-			logrus.Infof("Succeeded in mapping Ceph volume %s with the %s option", v.DriverVolume, modeOption)
+			logrus.Infof("Succeeded in mapping Ceph volume %s with the %s option and --no-settle", v.DriverVolume, modeOption)
 		} else {
-			msg := fmt.Sprintf("Failed to map Ceph volume %s with the %s option: %s - %s", v.DriverVolume, modeOption, err, strings.TrimRight(out.String(), "\n"))
+			msg := fmt.Sprintf("Failed to map Ceph volume %s with the %s option and --no-settle: %s - %s", v.DriverVolume, modeOption, err, strings.TrimRight(out.String(), "\n"))
 			logrus.Errorf(msg)
 			return fmt.Errorf(msg)
 		}

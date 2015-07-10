@@ -698,7 +698,7 @@ func (container *Container) cleanup() {
 		logrus.Errorf("%v: Failed to umount filesystem: %v", container.ID, err)
 	}
 
-	// I think this is the correct place for RBD/NFS unmounting and unmaping, rather than Container.Unmount(), which is called in a lot of other situations too.
+	// I think this is the correct place for RBD/NFS unmounting and unmapping, rather than Container.Unmount(), which is called in a lot of other situations too.
 	// Container.cleanup() is only called by Container.Start(), which is the only place that calls Container.prepareVolumes(true),
 	// which is the only way to trigger Mount.initialize(true), which is currently where we perform the RBD/NFS mapping and mounting.
 	for mountToPath, path := range container.Volumes {
@@ -731,8 +731,8 @@ func (container *Container) cleanup() {
 }
 
 func UnmapCephDevice(cephDevice string) {
-	logrus.Infof("Unmapping Ceph volume from %s", cephDevice)
-	cmd := exec.Command("rbd", "unmap", cephDevice)
+	logrus.Infof("Unmapping Ceph volume from %s with --no-settle", cephDevice)
+	cmd := exec.Command("rbd", "unmap", cephDevice, "--no-settle")
 	var out bytes.Buffer
 	cmd.Stderr = &out
 	err := cmd.Run()
