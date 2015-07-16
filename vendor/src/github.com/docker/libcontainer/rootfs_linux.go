@@ -142,7 +142,7 @@ func mountToRootfs(m *configs.Mount, rootfs, mountLabel string) error {
 		var out bytes.Buffer
 		cmd.Stderr = &out
 		if err := cmd.Run(); err != nil {
-			e := fmt.Errorf("Failed to mount %s device %s to %s with mode flag %s: %s", m.Device, m.Source, dest, modeFlag, err)
+			e := fmt.Errorf("Failed to mount %s device %s to %s with mode flag %s: %s - %s", m.Device, m.Source, dest, modeFlag, err, out.String())
 			logrus.Error(e)
 			return e
 		}
