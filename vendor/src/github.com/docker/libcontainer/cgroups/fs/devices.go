@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"runtime/debug"
 	"github.com/docker/libcontainer/cgroups"
 	"github.com/docker/libcontainer/configs"
 )
@@ -22,6 +23,7 @@ func (s *DevicesGroup) Apply(d *data) error {
 }
 
 func (s *DevicesGroup) Set(path string, cgroup *configs.Cgroup) error {
+	debug.PrintStack()
 	if !cgroup.AllowAllDevices {
 		if err := writeFile(path, "devices.deny", "a"); err != nil {
 			return err
