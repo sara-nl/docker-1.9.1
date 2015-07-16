@@ -101,7 +101,6 @@ type Container struct {
 	// Store rw/ro in a separate structure to preserve reverse-compatibility on-disk.
 	// Easier than migrating older container configs :)
 	VolumesRW  map[string]bool
-	VolumesDevice map[string]string
 	VolumesDriver map[string]string
 	hostConfig *runconfig.HostConfig
 
@@ -702,25 +701,8 @@ func (container *Container) cleanup() {
 	// Container.cleanup() is only called by Container.Start(), which is the only place that calls Container.prepareVolumes(true),
 	// which is the only way to trigger Mount.initialize(true), which is currently where we perform the RBD/NFS mapping and mounting.
 	for mountToPath, path := range container.Volumes {
-		driver := container.VolumesDriver[mountToPath]
-		device := container.VolumesDevice[mountToPath]
-		if driver == "" || device == "" {
-			continue
-		}
-
-		logrus.Infof("Unmounting %s device %s from %s", driver, device, path)
-		cmd := exec.Command("umount", path)
-		var out bytes.Buffer
-		cmd.Stderr = &out
-		err := cmd.Run()
-		if err == nil {
-			logrus.Infof("Succeeded in unmounting %s device %s from %s", driver, device, path)
-		} else {
-			logrus.Errorf("Failed to unmount %s device %s from %s: %s - %s", driver, device, path, err, strings.TrimRight(out.String(), "\n"))
-		}
-
-		if driver == "ceph" {
-			UnmapCephDevice(device)
+		if container.VolumesDriver[mountToPath] == "ceph" {
+			UnmapCephDevice(path)
 		}
 		// Note that NFS doesn't require unmapping
 	}

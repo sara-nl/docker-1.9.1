@@ -111,6 +111,7 @@ func modify(config *configs.Config, context *cli.Context) {
 		}
 	}
 	for _, rawBind := range context.StringSlice("bind") {
+		//TODO: Do we need to handle special devices here?
 		mount := &configs.Mount{
 			Device: "bind",
 			Flags:  syscall.MS_BIND | syscall.MS_REC,

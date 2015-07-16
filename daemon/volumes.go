@@ -46,7 +46,6 @@ func (container *Container) prepareVolumes(isStarting bool) error {
 	if container.Volumes == nil || len(container.Volumes) == 0 {
 		container.Volumes = make(map[string]string)
 		container.VolumesRW = make(map[string]bool)
-		container.VolumesDevice = make(map[string]string)
 		container.VolumesDriver = make(map[string]string)
 	}
 
@@ -104,28 +103,6 @@ func (m *Mount) initialize(isStarting bool) error {
 		}
 	}
 
-	if (v.Driver == "ceph" || v.Driver == "nfs") && isStarting {
-		modeFlag := "--rw"
-		if !v.Writable {
-			modeFlag = "--read-only"
-		}
-		logrus.Infof("Mounting %s device %s to %s with the %s flag", v.Driver, v.DriverDevice, v.Path, modeFlag)
-		cmd := exec.Command("mount", modeFlag, v.DriverDevice, v.Path)
-		var out bytes.Buffer
-		cmd.Stderr = &out
-		err := cmd.Run()
-		if err == nil {
-			logrus.Infof("Succeeded in mounting %s device %s to %s with the %s flag", v.Driver, v.DriverDevice, v.Path, modeFlag)
-		} else {
-			msg := fmt.Sprintf("Failed to mount %s device %s to %s with the %s flag (will attempt to unmap the volume): %s - %s", v.Driver, v.DriverDevice, v.Path, modeFlag, err, strings.TrimRight(out.String(), "\n"))
-			logrus.Errorf(msg)
-			if v.Driver == "ceph" {
-				UnmapCephDevice(v.DriverDevice)
-			}
-			return fmt.Errorf(msg)
-		}
-	}
-
 	// No need to initialize anything since it's already been initialized
 	if hostPath, exists := m.container.Volumes[m.MountToPath]; exists {
 		// If this is a bind-mount/volumes-from, maybe it was passed in at start instead of create
@@ -152,7 +129,6 @@ func (m *Mount) initialize(isStarting bool) error {
 	}
 	m.container.Volumes[m.MountToPath] = m.volume.Path
 	m.container.VolumesRW[m.MountToPath] = m.Writable
-	m.container.VolumesDevice[m.MountToPath] = m.volume.DriverDevice
 	m.container.VolumesDriver[m.MountToPath] = m.volume.Driver
 	m.volume.AddContainer(m.container.ID)
 	if m.Writable && m.copyData {
@@ -300,7 +276,7 @@ func parseBindMountSpec(spec string) (string, string, bool, string, error) {
 			path = filepath.Clean(path)
 		}
 	} else if driver == "nfs" {
-		path = strings.Replace(path, "/", ":/", 1)
+		path = strings.Replace(path, "//", "://", 1)
 	}
 
 	mountToPath = filepath.Clean(mountToPath)
@@ -413,6 +389,7 @@ func (container *Container) setupMounts() error {
 			Source:      container.Volumes[path],
 			Destination: path,
 			Writable:    container.VolumesRW[path],
+			Driver:      container.VolumesDriver[path],
 		})
 	}
 

@@ -54,7 +54,6 @@ func (daemon *Daemon) ContainerInspect(job *engine.Job) error {
 	out.SetJson("Volumes", container.Volumes)
 	out.SetJson("VolumesRW", container.VolumesRW)
 	out.SetJson("VolumesDriver", container.VolumesDriver)
-	out.SetJson("VolumesDevice", container.VolumesDevice)
 	out.SetJson("AppArmorProfile", container.AppArmorProfile)
 
 	out.SetList("ExecIDs", container.GetExecIDs())
