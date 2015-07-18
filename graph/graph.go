@@ -32,7 +32,7 @@ type Graph struct {
 	Root        string
 	idIndex     *truncindex.TruncIndex
 	driver      graphdriver.Driver
-	imageMutext imageMutex
+	imageMutex imageMutex
 }
 
 // NewGraph instantiates a new graph at the given root path in the filesystem.
