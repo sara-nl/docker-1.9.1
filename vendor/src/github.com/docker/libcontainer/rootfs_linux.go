@@ -17,6 +17,7 @@ import (
 	"github.com/docker/libcontainer/cgroups"
 	"github.com/docker/libcontainer/configs"
 	"github.com/docker/libcontainer/label"
+	"bytes"
 )
 
 const defaultMountFlags = syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV
@@ -169,6 +170,25 @@ func mountToRootfs(m *configs.Mount, rootfs, mountLabel string) error {
 				return err
 			}
 		}
+	case "ceph", "nfs":
+		if err := createIfNotExists(dest, true); err != nil {
+			return err
+		}
+		modeFlag := "--rw"
+		if m.Flags&syscall.MS_RDONLY != 0 {
+			modeFlag = "--read-only"
+		}
+		// Using the mount command rather than the mount syscall because for NFS mounts, the syscall requires us to figure out our own IP address
+		cmd := exec.Command("mount", modeFlag, m.Source, dest)
+		var out bytes.Buffer
+		cmd.Stderr = &out
+		if err := cmd.Run(); err != nil {
+			e := fmt.Errorf("Failed to mount %s device %s to %s with mode flag %s: %s - %s", m.Device, m.Source, dest, modeFlag, err, strings.TrimRight(out.String(), "\n"))
+			fmt.Fprintf(os.Stderr, "%s\n", e)
+			return e
+		}
+		fmt.Fprintf(os.Stderr, "Succeeded in mounting %s device %s to %s with mode flag %s\n", m.Device, m.Source, dest, modeFlag)
+		//TODO: The bind mount does a remount here for readonly mounts - why?
 	case "cgroup":
 		mounts, err := cgroups.GetCgroupMounts()
 		if err != nil {

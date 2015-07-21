@@ -94,6 +94,8 @@ func parseBindMount(spec string, mountLabel string, config *runconfig.Config) (*
 			} else {
 				bind.Driver = config.VolumeDriver
 			}
+		} else if bind.Driver == "nfs" {
+			name = strings.Replace(name, "//", "://", 1)
 		}
 	} else {
 		bind.Source = filepath.Clean(source)
