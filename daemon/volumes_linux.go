@@ -37,10 +37,15 @@ func (container *Container) setupMounts() ([]execdriver.Mount, error) {
 			return nil, err
 		}
 
+		source := path
+		if path == "" {
+			source = m.Name
+		}
 		mounts = append(mounts, execdriver.Mount{
-			Source:      path,
+			Source:      source,
 			Destination: m.Destination,
 			Writable:    m.RW,
+			Driver:      m.Driver,
 		})
 	}
 
