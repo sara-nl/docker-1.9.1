@@ -8,7 +8,9 @@ import (
 )
 
 func New() *Root {
-	return &Root{}
+	return &Root{
+		volumes: make(map[string]*Volume),
+	}
 }
 
 type Root struct {
@@ -26,6 +28,10 @@ func (r *Root) Create(name string) (volume.Volume, error) {
 
 	v, exists := r.volumes[name]
 	if !exists {
+		v = &Volume{
+			driverName:       r.Name(),
+			name:             name,
+		}
 		r.volumes[name] = v
 	}
 	v.use()
@@ -69,7 +75,8 @@ func (v *Volume) Path() string {
 }
 
 func (v *Volume) Mount() (string, error) {
-	return "", nil
+	// The return value from this method will be passed to the container
+	return v.name, nil
 }
 
 func (v *Volume) Unmount() error {

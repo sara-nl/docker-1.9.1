@@ -113,6 +113,7 @@ func (v *Volume) Path() string {
 }
 
 func (v *Volume) Mount() (string, error) {
+	// The return value from this method will be passed to the container
 	debug.PrintStack()
 	return v.mappedDevicePath, nil
 }
