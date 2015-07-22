@@ -51,6 +51,8 @@ import (
 	volumedrivers "github.com/docker/docker/volume/drivers"
 	"github.com/docker/docker/volume/local"
 	"github.com/docker/libcontainer/netlink"
+	"github.com/docker/docker/volume/ceph"
+	"github.com/docker/docker/volume/nfs"
 )
 
 var (
@@ -791,6 +793,12 @@ func NewDaemon(config *Config, registryService *registry.Service) (daemon *Daemo
 		return nil, err
 	}
 	volumedrivers.Register(volumesDriver, volumesDriver.Name())
+
+	cephVolumesDriver := cephvolumedriver.New()
+	volumedrivers.Register(cephVolumesDriver, cephVolumesDriver.Name())
+
+	nfsVolumesDriver := nfsvolumedriver.New()
+	volumedrivers.Register(nfsVolumesDriver, nfsVolumesDriver.Name())
 
 	trustKey, err := api.LoadOrCreateTrustKey(config.TrustKeyPath)
 	if err != nil {

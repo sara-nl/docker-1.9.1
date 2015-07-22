@@ -72,12 +72,11 @@ func parseBindMount(spec string, mountLabel string, config *runconfig.Config) (*
 	case 3:
 		bind.Destination = arr[1]
 		mode := arr[2]
-		if !validMountMode(mode) {
-			return nil, fmt.Errorf("invalid mode for volumes-from: %s", mode)
-		}
-		bind.RW = rwModes[mode]
 		// Relabel will apply a SELinux label, if necessary
-		bind.Relabel = mode
+		var err error
+		if bind.RW, bind.Relabel, bind.Driver, err = parseMountMode(mode); err != nil {
+			return nil, fmt.Errorf("invalid mode for volumes: %s", mode)
+		}
 	default:
 		return nil, fmt.Errorf("Invalid volume specification: %s", spec)
 	}
@@ -88,9 +87,14 @@ func parseBindMount(spec string, mountLabel string, config *runconfig.Config) (*
 	}
 
 	if len(source) == 0 {
-		bind.Driver = config.VolumeDriver
 		if len(bind.Driver) == 0 {
-			bind.Driver = volume.DefaultDriverName
+			if len(config.VolumeDriver) == 0 {
+				bind.Driver = volume.DefaultDriverName
+			} else {
+				bind.Driver = config.VolumeDriver
+			}
+		} else if bind.Driver == "nfs" {
+			name = strings.Replace(name, "//", "://", 1)
 		}
 	} else {
 		bind.Source = filepath.Clean(source)
@@ -143,7 +147,42 @@ func validMountMode(mode string) bool {
 	return roModes[mode] || rwModes[mode]
 }
 
+func parseMountMode(mode string) (bool, string, string, error) {
+	rw := false
+	rwSpecified := false
+	sharingSpecified := false
+	var labelItems []string
+	driver := ""
+	for _, item := range strings.Split(mode, ",") {
+		lowerItem := strings.ToLower(item)
+		switch lowerItem {
+		case "rw", "ro":
+			if rwSpecified {
+				return false, "", "", fmt.Errorf("invalid mode for volumes: %s", mode)
+			}
+			rw = lowerItem == "rw"
+			rwSpecified = true
+			labelItems = append(labelItems, item)
+		case "z":
+			if sharingSpecified {
+				return false, "", "", fmt.Errorf("invalid mode for volumes: %s", mode)
+			}
+			sharingSpecified = true
+			labelItems = append(labelItems, item)
+		case "ceph", "nfs":
+			if driver != "" {
+				return false, "", "", fmt.Errorf("invalid mode for volumes: %s", mode)
+			}
+			driver = lowerItem
+		}
+	}
+	return rw, strings.Join(labelItems, ","), driver, nil
+}
+
 func copyExistingContents(source, destination string) error {
+	if destination == "" { // Empty destination means that this is a special mount which will get mounted inside the container
+		return nil
+	}
 	volList, err := ioutil.ReadDir(source)
 	if err != nil {
 		return err
