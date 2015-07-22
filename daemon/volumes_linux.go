@@ -38,9 +38,10 @@ func (container *Container) setupMounts() ([]execdriver.Mount, error) {
 		}
 
 		mounts = append(mounts, execdriver.Mount{
-			Source:      path,
+			Source:      path, // Note that for Ceph volumes, this will be the mapped device (e.g. /dev/rbd0), and for NFS shares, it will be the share URI (e.g. 1.2.3.4://foo)
 			Destination: m.Destination,
 			Writable:    m.RW,
+			Driver:      m.Driver,
 		})
 	}
 
