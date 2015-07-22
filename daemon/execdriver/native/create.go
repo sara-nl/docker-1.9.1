@@ -53,6 +53,15 @@ func (d *driver) createContainer(c *execdriver.Command) (*configs.Config, error)
 		if err := d.setCapabilities(container, c); err != nil {
 			return nil, err
 		}
+		hostDevices, err := devices.HostDevices()
+		if err != nil {
+			return nil, err
+		}
+		for _, dev := range hostDevices {
+			if strings.HasPrefix(dev.Path, "/dev/rbd") {
+				container.Cgroups.AllowedDevices = append(container.Cgroups.AllowedDevices, dev)
+			}
+		}
 	}
 
 	if c.AppArmorProfile != "" {
