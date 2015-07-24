@@ -169,7 +169,7 @@ func createNetworkNamespace(path string, osCreate bool) (*Info, error) {
 	if err := createNamespaceFile(path); err != nil {
 		return nil, err
 	}
-
+	log.Debugf("Created Network Namespace: %s", path)
 	cmd := &exec.Cmd{
 		Path:   reexec.Self(),
 		Args:   append([]string{"netns-create"}, path),
@@ -268,11 +268,12 @@ func (n *networkNamespace) RemoveInterface(i *Interface) error {
 		fmt.Println("LinkSetNsPid failed: ", err)
 		return err
 	}
-
+	log.Debugf("NamespaceLinux RemovingInterface: %s", i)
 	return nil
 }
 
 func (n *networkNamespace) AddInterface(i *Interface) error {
+	log.Debugf("Namespace_linux AddInterface %s", i)
 	n.Lock()
 	i.DstName = fmt.Sprintf("%s%d", i.DstName, n.nextIfIndex)
 	n.nextIfIndex++

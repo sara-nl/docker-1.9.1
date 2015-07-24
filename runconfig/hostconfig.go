@@ -34,6 +34,10 @@ func (n NetworkMode) IsContainer() bool {
 	return len(parts) > 1 && parts[0] == "container"
 }
 
+func (n NetworkMode) IsRouted() bool {
+	return n == "routed"	
+}
+
 func (n NetworkMode) IsNone() bool {
 	return n == "none"
 }

@@ -76,7 +76,7 @@ type Interface struct {
 	DstName string
 
 	// IPv4 address for the interface.
-	Address *net.IPNet
+	Addresses []*net.IPNet
 
 	// IPv6 address for the interface.
 	AddressIPv6 *net.IPNet
@@ -90,7 +90,7 @@ func (i *Interface) GetCopy() *Interface {
 	return &Interface{
 		SrcName:     i.SrcName,
 		DstName:     i.DstName,
-		Address:     types.GetIPNetCopy(i.Address),
+		Addresses:   types.GetIPNetCopies(i.Addresses),
 		AddressIPv6: types.GetIPNetCopy(i.AddressIPv6),
 	}
 }
@@ -108,9 +108,11 @@ func (i *Interface) Equal(o *Interface) bool {
 	if i.SrcName != o.SrcName || i.DstName != o.DstName {
 		return false
 	}
-
-	if !types.CompareIPNet(i.Address, o.Address) {
-		return false
+	
+	for a := range i.Addresses {
+		if !types.CompareIPNet(i.Addresses[a], o.Addresses[a]) {
+			return false
+		}
 	}
 
 	if !types.CompareIPNet(i.AddressIPv6, o.AddressIPv6) {

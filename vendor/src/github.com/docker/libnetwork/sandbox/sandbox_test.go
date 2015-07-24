@@ -164,13 +164,13 @@ func getInterfaceList() []*Interface {
 		&Interface{
 			SrcName:     "veth1234567",
 			DstName:     "eth0",
-			Address:     netv4a,
+			Addresses:     netv4a,
 			AddressIPv6: netv6a,
 		},
 		&Interface{
 			SrcName:     "veth7654321",
 			DstName:     "eth1",
-			Address:     netv4b,
+			Addresses:     netv4b,
 			AddressIPv6: netv6b,
 		},
 	}

@@ -25,7 +25,7 @@ func allocatePorts(epConfig *EndpointConfiguration, intf *sandbox.Interface, req
 		defHostIP = reqDefBindIP
 	}
 
-	return allocatePortsInternal(epConfig.PortBindings, intf.Address.IP, defHostIP, ulPxyEnabled)
+	return allocatePortsInternal(epConfig.PortBindings, intf.Addresses[0].IP, defHostIP, ulPxyEnabled)
 }
 
 func allocatePortsInternal(bindings []types.PortBinding, containerIP, defHostIP net.IP, ulPxyEnabled bool) ([]types.PortBinding, error) {
