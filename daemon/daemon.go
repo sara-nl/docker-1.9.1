@@ -924,8 +924,14 @@ func initNetworkController(config *Config) (libnetwork.NetworkController, error)
 			return nil, err
 		}
 	}
+	initRoutedDriver(controller, config)
 
 	return controller, nil
+}
+
+func initRoutedDriver(controller libnetwork.NetworkController, config *Config) error {
+	controller.NewNetwork("routed", "routed")
+	return nil
 }
 
 func initBridgeDriver(controller libnetwork.NetworkController, config *Config) error {

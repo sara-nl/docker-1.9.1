@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/docker/runconfig"
 	"github.com/docker/libcontainer/label"
+	"github.com/Sirupsen/logrus"
 )
 
 func (daemon *Daemon) ContainerCreate(name string, config *runconfig.Config, hostConfig *runconfig.HostConfig) (string, []string, error) {
@@ -58,7 +59,7 @@ func (daemon *Daemon) Create(config *runconfig.Config, hostConfig *runconfig.Hos
 		imgID     string
 		err       error
 	)
-
+	logrus.Infof("Container Labels: %s", config.Labels)
 	if config.Image != "" {
 		img, err = daemon.repositories.LookupImage(config.Image)
 		if err != nil {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 	"github.com/vishvananda/netns"
 )
@@ -19,6 +20,7 @@ func configureInterface(iface netlink.Link, settings *Interface) error {
 		{setInterfaceName, fmt.Sprintf("error renaming interface %q to %q", ifaceName, settings.DstName)},
 		{setInterfaceIP, fmt.Sprintf("error setting interface %q IP to %q", ifaceName, settings.Address)},
 		{setInterfaceIPv6, fmt.Sprintf("error setting interface %q IPv6 to %q", ifaceName, settings.AddressIPv6)},
+		{setDefaultRoute, fmt.Sprintf("error setting default route to %q", ifaceName)},
 	}
 
 	for _, config := range ifaceConfigurators {
@@ -78,4 +80,11 @@ func setInterfaceIPv6(iface netlink.Link, settings *Interface) error {
 
 func setInterfaceName(iface netlink.Link, settings *Interface) error {
 	return netlink.LinkSetName(iface, settings.DstName)
+}
+
+func setDefaultRoute(iface netlink.Link, settings *Interface) error {
+	_, dip, _ := net.ParseCIDR("0.0.0.0/0")
+	route := netlink.Route{LinkIndex: iface.Attrs().Index, Dst: dip}
+	logrus.Debugf("Adding Default Route using %s", route)
+	return netlink.RouteAdd(&route)
 }
