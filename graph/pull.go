@@ -32,7 +32,10 @@ func (s *TagStore) Pull(image string, tag string, imagePullConfig *ImagePullConf
 	var (
 		sf = streamformatter.NewJSONStreamFormatter()
 	)
-
+	// TODO only lock around layer downloads 
+	s.pullLock.Lock()
+	defer s.pullLock.Unlock()
+	
 	// Resolve the Repository name from fqn to RepositoryInfo
 	repoInfo, err := s.registryService.ResolveRepository(image)
 	if err != nil {
