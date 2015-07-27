@@ -18,7 +18,7 @@ func configureInterface(iface netlink.Link, settings *Interface) error {
 		ErrMessage string
 	}{
 		{setInterfaceName, fmt.Sprintf("error renaming interface %q to %q", ifaceName, settings.DstName)},
-		{setInterfaceIP, fmt.Sprintf("error setting interface %q IP to %q", ifaceName, settings.Address)},
+		{setInterfaceIP, fmt.Sprintf("error setting interface %q IP to %q", ifaceName, settings.Addresses)},
 		{setInterfaceIPv6, fmt.Sprintf("error setting interface %q IPv6 to %q", ifaceName, settings.AddressIPv6)},
 		{setDefaultRoute, fmt.Sprintf("error setting default route to %q", ifaceName)},
 	}
@@ -66,8 +66,15 @@ func programGateway(path string, gw net.IP) error {
 }
 
 func setInterfaceIP(iface netlink.Link, settings *Interface) error {
-	ipAddr := &netlink.Addr{IPNet: settings.Address, Label: ""}
-	return netlink.AddrAdd(iface, ipAddr)
+	logrus.Debugf("Setting IP address %s", settings.Addresses)
+	for i := range settings.Addresses {
+		logrus.Debugf("Setting IP %s to %s", settings.Addresses[i], iface)
+		ipAddr := &netlink.Addr{IPNet: settings.Addresses[i], Label: ""}
+		if err := netlink.AddrAdd(iface, ipAddr); err != nil {
+			return err
+		}
+	}
+	return nil;
 }
 
 func setInterfaceIPv6(iface netlink.Link, settings *Interface) error {
@@ -84,7 +91,9 @@ func setInterfaceName(iface netlink.Link, settings *Interface) error {
 
 func setDefaultRoute(iface netlink.Link, settings *Interface) error {
 	_, dip, _ := net.ParseCIDR("0.0.0.0/0")
+	logrus.Debugf("%s", iface)
+	logrus.Debugf("if %s", settings)
 	route := netlink.Route{LinkIndex: iface.Attrs().Index, Dst: dip}
-	logrus.Debugf("Adding Default Route using %s", route)
+	logrus.Debugf("Adding Default Route %s", route)
 	return netlink.RouteAdd(&route)
 }

@@ -148,11 +148,6 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 	if (netMode.IsContainer() || netMode.IsHost()) && *flMacAddress != "" {
 		return nil, nil, cmd, ErrConflictContainerNetworkAndMac
 	}
-
-	// Validate the input ip4 addresses
-	if *flIp4Addresses != "" {
-		
-	}
 	
 	// Validate the input mac address
 	if *flMacAddress != "" {

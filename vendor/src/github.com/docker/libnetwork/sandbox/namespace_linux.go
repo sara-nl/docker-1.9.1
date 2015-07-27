@@ -273,6 +273,7 @@ func (n *networkNamespace) RemoveInterface(i *Interface) error {
 }
 
 func (n *networkNamespace) AddInterface(i *Interface) error {
+	log.Debugf("Namespace_linux AddInterface %s", i)
 	n.Lock()
 	i.DstName = fmt.Sprintf("%s%d", i.DstName, n.nextIfIndex)
 	n.nextIfIndex++

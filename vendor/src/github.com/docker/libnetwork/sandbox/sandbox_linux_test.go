@@ -58,8 +58,8 @@ func newInfo(t *testing.T) (*Info, error) {
 	if err != nil {
 		return nil, err
 	}
-	intf1.Address = addr
-	intf1.Address.IP = ip4
+	intf1.Addresses = addr
+	intf1.Addresses.IP = ip4
 
 	// ip6, addrv6, err := net.ParseCIDR("2001:DB8::ABCD/48")
 	ip6, addrv6, err := net.ParseCIDR("fe80::2/64")
@@ -85,8 +85,8 @@ func newInfo(t *testing.T) (*Info, error) {
 	if err != nil {
 		return nil, err
 	}
-	intf2.Address = addr
-	intf2.Address.IP = ip4
+	intf2.Addresses = addr
+	intf2.Addresses.IP = ip4
 
 	// ip6, addrv6, err := net.ParseCIDR("2001:DB8::ABCD/48")
 	ip6, addrv6, err = net.ParseCIDR("fe80::3/64")

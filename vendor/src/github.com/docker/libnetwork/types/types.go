@@ -163,6 +163,14 @@ func GetIPCopy(from net.IP) net.IP {
 	return to
 }
 
+func GetIPNetCopies(from []*net.IPNet) []*net.IPNet {
+	to := make([]*net.IPNet, len(from))
+	for i := range from {
+		to[i] = GetIPNetCopy(from[i])
+	}
+	return to
+}
+
 // GetIPNetCopy returns a copy of the passed IP Network
 func GetIPNetCopy(from *net.IPNet) *net.IPNet {
 	if from == nil {

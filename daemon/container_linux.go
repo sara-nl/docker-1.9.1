@@ -541,6 +541,7 @@ func (container *Container) buildPortMapInfo(n libnetwork.Network, ep libnetwork
 }
 
 func (container *Container) buildEndpointInfo(n libnetwork.Network, ep libnetwork.Endpoint, networkSettings *network.Settings) (*network.Settings, error) {
+	
 	if ep == nil {
 		return nil, fmt.Errorf("invalid endpoint while building port map info")
 	}
@@ -562,8 +563,8 @@ func (container *Container) buildEndpointInfo(n libnetwork.Network, ep libnetwor
 
 	iface := ifaceList[0]
 
-	ones, _ := iface.Address().Mask.Size()
-	networkSettings.IPAddress = iface.Address().IP.String()
+	ones, _ := iface.Address()[0].Mask.Size()
+	networkSettings.IPAddress = iface.Address()[0].IP.String()
 	networkSettings.IPPrefixLen = ones
 
 	if iface.AddressIPv6().IP.To16() != nil {
@@ -579,8 +580,8 @@ func (container *Container) buildEndpointInfo(n libnetwork.Network, ep libnetwor
 	networkSettings.SecondaryIPAddresses = make([]network.Address, 0, len(ifaceList)-1)
 	networkSettings.SecondaryIPv6Addresses = make([]network.Address, 0, len(ifaceList)-1)
 	for _, iface := range ifaceList[1:] {
-		ones, _ := iface.Address().Mask.Size()
-		addr := network.Address{Addr: iface.Address().IP.String(), PrefixLen: ones}
+		ones, _ := iface.Address()[0].Mask.Size()
+		addr := network.Address{Addr: iface.Address()[0].IP.String(), PrefixLen: ones}
 		networkSettings.SecondaryIPAddresses = append(networkSettings.SecondaryIPAddresses, addr)
 
 		if iface.AddressIPv6().IP.To16() != nil {
