@@ -925,6 +925,13 @@ func initNetworkController(config *Config) (libnetwork.NetworkController, error)
 		}
 	}
 	
+	// Initialize driver "routed"
+ 	routedOpt := options.Generic{
+		"Mtu": config.Mtu}
+	if err := controller.ConfigureNetworkDriver("routed", options.Generic{netlabel.GenericData: routedOpt}); err != nil {
+		return nil, fmt.Errorf("Error initializing routed driver: %v", err)
+	}
+
 	if _, err := controller.NewNetwork("routed", "routed"); err != nil {
 		return nil, err
 	}

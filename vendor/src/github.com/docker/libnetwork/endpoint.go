@@ -297,8 +297,7 @@ func (ep *endpoint) Join(containerID string, options ...EndpointOption) (*Contai
 		for j, _ := range i.addr {
 			addresses[j] = &i.addr[j]
 		}
-		logrus.Debugf("i.addr    => ", i.addr[0], i.addr[1])
-		logrus.Debugf("addresses => ", addresses[0], addresses[1])
+
 		iface := &sandbox.Interface{
 			SrcName: i.srcName,
 			DstName: i.dstPrefix,
@@ -335,7 +334,7 @@ func (ep *endpoint) Leave(containerID string, options ...EndpointOption) error {
 
 	ep.joinLeaveStart()
 	defer ep.joinLeaveEnd()
-
+	logrus.Debugf("Endpoint Leave %s", containerID)
 	ep.processOptions(options...)
 
 	ep.Lock()

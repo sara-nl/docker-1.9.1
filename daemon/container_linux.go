@@ -990,6 +990,7 @@ func (container *Container) ReleaseNetwork() {
 	// If the container is not attached to any network do not try
 	// to release network and generate spurious error messages.
 	if container.NetworkSettings.NetworkID == "" {
+		logrus.Infof("Not releasing network from container %s", container.ID)
 		return
 	}
 

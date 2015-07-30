@@ -14,6 +14,7 @@ import (
 	"github.com/vishvananda/netlink"
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/libnetwork/netlabel"
+	"github.com/docker/libnetwork/options"
 )
 
 const (
@@ -23,13 +24,13 @@ const (
 
 type routedNetwork struct {
 	id        types.UUID
-//	config    *NetworkConfiguration
 	endpoints map[types.UUID]*routedEndpoint // key: endpoint id
 	sync.Mutex
 }
 
 type driver struct{
 	network *routedNetwork
+	mtu     int
 }
 
 type routedEndpoint struct {
@@ -47,18 +48,22 @@ func Init(dc driverapi.DriverCallback) error {
 }
 
 func (d *driver) Config(option map[string]interface{}) error {
-	logrus.Warnf("Config: %s", option)
+	m := option[netlabel.GenericData]
+	ops := m.(options.Generic)
+	mtu := ops["Mtu"].(int)
+	logrus.Infof("Mtu %d", mtu)
+	d.mtu = mtu
 	return nil
 }
 
 func (d *driver) CreateNetwork(id types.UUID, option map[string]interface{}) error {
-	logrus.Warnf("CreateNetwork: id=%s - option=%s", id, option)	
+	logrus.Warnf("CreateNetwork: id=%s - option=%s", id, option)
 	d.network = &routedNetwork{id: id, endpoints: make(map[types.UUID]*routedEndpoint)}
 	return nil
 }
 
-func (d *driver) DeleteNetwork(nid types.UUID) error {
-	logrus.Warnf("DeleteNetwork: nid=%s", nid)
+func (d *driver) DeleteNetwork(id types.UUID) error {
+	logrus.Warnf("DeleteNetwork: id=%s", id)
 	d.network = nil
 	return nil
 }
@@ -67,31 +72,30 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 	logrus.Warnf("CreatedEndpoint:")
 	logrus.Debugf("nid=%s", nid)
 	logrus.Debugf("eid=%s", eid)
-	logrus.Debugf("epInfo.Interfaces= %s", epInfo.Interfaces())
 	logrus.Debugf("epOptions= %s", epOptions)
 	
 	if epInfo == nil {
 		return errors.New("invalid endpoint info passed")
 	}
 	logrus.Debugf("IPV4: %s", epOptions[netlabel.IPv4Addresses])
-	//|| len(epOptions[netlabel.IPv4Addresses]) == 0 
 	if epOptions[netlabel.IPv4Addresses] == nil {
-		return errors.New("empty list of IP addresses passed to the routed(local) driver")
+		return errors.New("Empty list of IP addresses passed to the routed(local) driver")
 	}
 	
 	// Generate host veth
-	hostIfaceName, err := generateIfaceName()
+	hostIfaceName, err := generateIfaceName("veth" + string(eid)[:4])
 	if err != nil {
 		return err
 	}
-	logrus.Debugf("Host Interface: %s", hostIfaceName)
+	logrus.Debugf("Endpoint %s Host Interface: %s", eid, hostIfaceName)
 	
 	// Generate sandbox veth
-	sandboxIfaceName, err := generateIfaceName()
+	sandboxIfaceName, err := generateIfaceName("veth" + string(eid)[:4])
 	if err != nil {
 		return err
 	}
-	
+	logrus.Debugf("Endpoint %s Sandbox Interface: %s", eid, sandboxIfaceName)
+
 	// Generate and add the interface pipe host <-> sandbox
 	veth := &netlink.Veth{
 		LinkAttrs: netlink.LinkAttrs{
@@ -114,7 +118,6 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 			netlink.LinkDel(hostIface)
 		}
 	}()
-	logrus.Debugf("*** Generate sandbox Veth")
 	
 	logrus.Infof("Sandbox Interface: %s", sandboxIfaceName)
 	sandboxIface, err := netlink.LinkByName(sandboxIfaceName)
@@ -136,6 +139,17 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 	network.endpoints[eid] = endpoint
 
 	ipv4Addresses := epOptions[netlabel.IPv4Addresses].([]net.IPNet)
+	
+	if d.mtu != 0 {
+		err = netlink.LinkSetMTU(hostIface, d.mtu)
+		if err != nil {
+			return err
+		}
+		err = netlink.LinkSetMTU(sandboxIface, d.mtu)
+		if err != nil {
+			return err
+		}
+	}
 	
 	// Down the interface before configuring mac address.
 	if err := netlink.LinkSetDown(sandboxIface); err != nil {
@@ -190,9 +204,8 @@ func (ein *ErrIfaceName) Error() string {
 	return "failed to find name for new interface"
 }
 
-func generateIfaceName() (string, error) {
-	vethPrefix:= "veth"
-	vethLen:=7
+func generateIfaceName(vethPrefix string) (string, error) {
+	vethLen:= 12 - len(vethPrefix)
 	for i := 0; i < 3; i++ {
 		name, err := netutils.GenerateRandomName(vethPrefix, vethLen)
 		if err != nil {
@@ -217,9 +230,11 @@ func (d *driver) DeleteEndpoint(nid, eid types.UUID) error {
 	// already been deleted by sandbox delete.
 	link, err := netlink.LinkByName(endpoint.hostInterface)
 	if err == nil {
+		logrus.Debugf("Deleting host interface %s", endpoint.hostInterface)
 		netlink.LinkDel(link)
+	} else {
+		logrus.Debugf("Can't find host interface: %s ", err)
 	}
-	logrus.Debugf("Deleting Endpoint")
 	return nil
 }
 
@@ -231,25 +246,20 @@ func (d *driver) EndpointOperInfo(nid, eid types.UUID) (map[string]interface{}, 
 func (d *driver) Join(nid, eid types.UUID, sboxKey string, jinfo driverapi.JoinInfo, options map[string]interface{}) error {
 
 	network := d.network
-	//	if err != nil {
-	//		return err
-	//	}
 	endpoint := network.endpoints[eid]
-	//	if err != nil {
-	//		return err
-	//	}
-	//	addDefaultRoute(endpoint.iface.DstName)
-	logrus.Warnf("addreses endpoint.iface.Addresses %s", endpoint.iface.Addresses)
 	
 	for _, ipv4 := range endpoint.iface.Addresses {
-		logrus.Warnf("adding route %s", ipv4)
-		addRoute(ipv4, "", "", endpoint.hostInterface)
+		err := addRoute(ipv4, "", "", endpoint.hostInterface)
+		if err != nil {
+			logrus.Errorf("Can't Add Route to %s -> %s : %s", ipv4, endpoint.hostInterface, err)			
+			return err
+		}
 	}
 	
 	logrus.Warnf("Join Network: %s - %s", endpoint.iface.SrcName, endpoint.iface.DstName)
 	if endpoint == nil {
 		logrus.Errorf("Endpoint not found %s", eid)
-		return errors.New("endpoint not found")
+		return errors.New("Endpoint not found")
 	}
 	logrus.Infof("endpoint iface %s", endpoint.iface)
 	
@@ -311,6 +321,15 @@ func generateMacAddr(ip net.IP) net.HardwareAddr {
 func addRoute(dest *net.IPNet, src string, gw string, ifaceName string) error {
 	iface, _ := netlink.LinkByName(ifaceName)
 	route := netlink.Route{LinkIndex: iface.Attrs().Index, Dst: dest}
-	logrus.Debugf("Adding Route %s", route)
-	return netlink.RouteAdd(&route)
+	routeBroad := netlink.Route{Dst: dest}
+	logrus.Infof("Adding Route in host %s", route)
+	err := netlink.RouteAdd(&route)
+	if err != nil {
+		logrus.Debugf("Can't add route %s : %s", route, err)
+		err = netlink.RouteDel(&routeBroad)
+		logrus.Debugf("Deleted route %s :%s", routeBroad, err)
+		err = netlink.RouteAdd(&route)
+		logrus.Debugf("Re-Added Route %s :%s", route, err)
+	}
+	return err
 }
