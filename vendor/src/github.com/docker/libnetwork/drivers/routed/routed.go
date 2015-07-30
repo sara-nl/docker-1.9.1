@@ -19,12 +19,13 @@ import (
 
 const (
 	networkType = "routed"
-	ifaceID		= 1
+	ifaceID     = 1
+	VethPrefix  = "vethr" 
 )
 
 type routedNetwork struct {
 	id        types.UUID
-	endpoints map[types.UUID]*routedEndpoint // key: endpoint id
+	endpoints map[types.UUID]*routedEndpoint
 	sync.Mutex
 }
 
@@ -41,7 +42,7 @@ type routedEndpoint struct {
 	ipv4Addresses   []netlink.Addr
 }
 
-// Init registers a new instance of host driver
+// Init registers a new instance of routed driver
 func Init(dc driverapi.DriverCallback) error {
 	logrus.Warnf("Registering Driver %s", networkType)
 	return dc.RegisterDriver(networkType, &driver{})
@@ -83,26 +84,25 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 	}
 	
 	// Generate host veth
-	hostIfaceName, err := generateIfaceName("veth" + string(eid)[:4])
+	hostIfaceName, err := generateIfaceName(VethPrefix + string(eid)[:4])
 	if err != nil {
 		return err
 	}
 	logrus.Debugf("Endpoint %s Host Interface: %s", eid, hostIfaceName)
-	
+
 	// Generate sandbox veth
-	sandboxIfaceName, err := generateIfaceName("veth" + string(eid)[:4])
+	sandboxIfaceName, err := generateIfaceName(VethPrefix + string(eid)[:4])
 	if err != nil {
 		return err
 	}
 	logrus.Debugf("Endpoint %s Sandbox Interface: %s", eid, sandboxIfaceName)
 
-	// Generate and add the interface pipe host <-> sandbox
 	veth := &netlink.Veth{
 		LinkAttrs: netlink.LinkAttrs{
 			Name: hostIfaceName,
 			TxQLen: 0},
 		PeerName: sandboxIfaceName}
-	
+
 	if err = netlink.LinkAdd(veth); err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 			netlink.LinkDel(hostIface)
 		}
 	}()
-	
+
 	logrus.Infof("Sandbox Interface: %s", sandboxIfaceName)
 	sandboxIface, err := netlink.LinkByName(sandboxIfaceName)
 	if err != nil {
@@ -130,16 +130,16 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 			netlink.LinkDel(sandboxIface)
 		}
 	}()
-	
+
 	network := d.network
 	network.Mutex.Lock()
 	defer network.Mutex.Unlock()
 
-	endpoint := &routedEndpoint{id: eid} // config: epConfig
+	endpoint := &routedEndpoint{id: eid}
 	network.endpoints[eid] = endpoint
 
 	ipv4Addresses := epOptions[netlabel.IPv4Addresses].([]net.IPNet)
-	
+
 	if d.mtu != 0 {
 		err = netlink.LinkSetMTU(hostIface, d.mtu)
 		if err != nil {
@@ -150,7 +150,7 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 			return err
 		}
 	}
-	
+
 	// Down the interface before configuring mac address.
 	if err := netlink.LinkSetDown(sandboxIface); err != nil {
 		return fmt.Errorf("could not set link down for container interface %s: %v", sandboxIfaceName, err)
@@ -159,7 +159,7 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 	if opt, ok := epOptions[netlabel.MacAddress]; ok {
 		if mac, ok := opt.(net.HardwareAddr); ok {
 			logrus.Debugf("Using Mac Address: %s", mac)
-			imac = mac	
+			imac = mac
 		}
 	}
 	// Set the sbox's MAC. If specified, use the one configured by user, otherwise generate one based on IP.
@@ -179,46 +179,29 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 	if err := netlink.LinkSetUp(hostIface); err != nil {
 		return fmt.Errorf("could not set link up for host interface %s: %v", hostIfaceName, err)
 	}
-	
+
 	addresses := make([]*net.IPNet, len(ipv4Addresses))
 	for i, _ := range ipv4Addresses {
-		addresses[i] = &ipv4Addresses[i] 	
+		addresses[i] = &ipv4Addresses[i]
 	}
-	
+
 	intf := &sandbox.Interface{}
 	intf.SrcName = sandboxIfaceName
 	intf.DstName = "eth"
 	intf.Addresses =  addresses
-	
-	logrus.Debugf("routed.go Addresses added %s", intf.Addresses)
-	
+
+	logrus.Debugf("Addresses added %s", intf.Addresses)
+
 	endpoint.iface = intf
 	endpoint.hostInterface = hostIfaceName
-	////
 	return nil
 }
+
 // ErrIfaceName error is returned when a new name could not be generated.
 type ErrIfaceName struct{}
 
 func (ein *ErrIfaceName) Error() string {
 	return "failed to find name for new interface"
-}
-
-func generateIfaceName(vethPrefix string) (string, error) {
-	vethLen:= 12 - len(vethPrefix)
-	for i := 0; i < 3; i++ {
-		name, err := netutils.GenerateRandomName(vethPrefix, vethLen)
-		if err != nil {
-			continue
-		}
-		if _, err := net.InterfaceByName(name); err != nil {
-			if strings.Contains(err.Error(), "no such") {
-				return name, nil
-			}
-			return "", err
-		}
-	}
-	return "", &ErrIfaceName{}
 }
 
 func (d *driver) DeleteEndpoint(nid, eid types.UUID) error {
@@ -249,9 +232,9 @@ func (d *driver) Join(nid, eid types.UUID, sboxKey string, jinfo driverapi.JoinI
 	endpoint := network.endpoints[eid]
 	
 	for _, ipv4 := range endpoint.iface.Addresses {
-		err := addRoute(ipv4, "", "", endpoint.hostInterface)
+		err := routeAdd(ipv4, "", "", endpoint.hostInterface)
 		if err != nil {
-			logrus.Errorf("Can't Add Route to %s -> %s : %s", ipv4, endpoint.hostInterface, err)			
+			logrus.Errorf("Can't Add Route to %s -> %s : %s", ipv4, endpoint.hostInterface, err)
 			return err
 		}
 	}
@@ -293,32 +276,35 @@ func electMacAddress(mac net.HardwareAddr, ip net.IP) net.HardwareAddr {
 	return generateMacAddr(ip)
 }
 
+func generateIfaceName(vethPrefix string) (string, error) {
+	vethLen:= 12 - len(vethPrefix)
+	for i := 0; i < 3; i++ {
+		name, err := netutils.GenerateRandomName(vethPrefix, vethLen)
+		if err != nil {
+			continue
+		}
+		if _, err := net.InterfaceByName(name); err != nil {
+			if strings.Contains(err.Error(), "no such") {
+				return name, nil
+			}
+			return "", err
+		}
+	}
+	return "", &ErrIfaceName{}
+}
+
 // Generate a IEEE802 compliant MAC address from the given IP address.
-//
 // The generator is guaranteed to be consistent: the same IP will always yield the same
 // MAC address. This is to avoid ARP cache issues.
 func generateMacAddr(ip net.IP) net.HardwareAddr {
 	hw := make(net.HardwareAddr, 6)
-
-	// The first byte of the MAC address has to comply with these rules:
-	// 1. Unicast: Set the least-significant bit to 0.
-	// 2. Address is locally administered: Set the second-least-significant bit (U/L) to 1.
-	// 3. As "small" as possible: The veth address has to be "smaller" than the bridge address.
 	hw[0] = 0x02
-
-	// The first 24 bits of the MAC represent the Organizationally Unique Identifier (OUI).
-	// Since this address is locally administered, we can do whatever we want as long as
-	// it doesn't conflict with other addresses.
 	hw[1] = 0x42
-
-	// Insert the IP address into the last 32 bits of the MAC address.
-	// This is a simple way to guarantee the address will be consistent and unique.
 	copy(hw[2:], ip.To4())
-
 	return hw
 }
 
-func addRoute(dest *net.IPNet, src string, gw string, ifaceName string) error {
+func routeAdd(dest *net.IPNet, src string, gw string, ifaceName string) error {
 	iface, _ := netlink.LinkByName(ifaceName)
 	route := netlink.Route{LinkIndex: iface.Attrs().Index, Dst: dest}
 	routeBroad := netlink.Route{Dst: dest}

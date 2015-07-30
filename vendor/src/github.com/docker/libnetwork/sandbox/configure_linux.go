@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/vishvananda/netlink"
@@ -90,10 +91,11 @@ func setInterfaceName(iface netlink.Link, settings *Interface) error {
 }
 
 func setDefaultRoute(iface netlink.Link, settings *Interface) error {
-	_, dip, _ := net.ParseCIDR("0.0.0.0/0")
-	logrus.Debugf("%s", iface)
-	logrus.Debugf("if %s", settings)
-	route := netlink.Route{LinkIndex: iface.Attrs().Index, Dst: dip}
-	logrus.Debugf("Adding Default Route %s", route)
-	return netlink.RouteAdd(&route)
+	if strings.HasPrefix(iface.Attrs().Name, "vethr") {
+		_, dip, _ := net.ParseCIDR("0.0.0.0/0")
+		route := netlink.Route{LinkIndex: iface.Attrs().Index, Dst: dip}
+		logrus.Debugf("Adding Default Route %s", route)
+		return netlink.RouteAdd(&route)
+	}
+	return nil
 }
