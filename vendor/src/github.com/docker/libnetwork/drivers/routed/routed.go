@@ -45,6 +45,21 @@ type routedEndpoint struct {
 // Init registers a new instance of routed driver
 func Init(dc driverapi.DriverCallback) error {
 	logrus.Warnf("Registering Driver %s", networkType)
+	links, err := netlink.LinkList();
+	if err != nil {
+		logrus.Errorf("Can't get list of net devices: %s", err)
+		return err
+	}
+
+	for _, lnk := range links {
+		if strings.HasPrefix(lnk.Attrs().Name, VethPrefix) {
+			if err := netlink.LinkDel(lnk); err != nil {
+				logrus.Errorf("veth couldn't be deleted: %s", lnk.Attrs().Name)
+			} else {
+				logrus.Infof("veth cleaned up: %s", lnk.Attrs().Name)
+			}
+		}
+	}
 	return dc.RegisterDriver(networkType, &driver{})
 }
 
