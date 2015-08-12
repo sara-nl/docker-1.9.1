@@ -178,16 +178,20 @@ func mountToRootfs(m *configs.Mount, rootfs, mountLabel string) error {
 		if m.Flags&syscall.MS_RDONLY != 0 {
 			modeFlag = "--read-only"
 		}
+		args := []string{m.Source, dest, modeFlag}
+		if m.Device == "nfs" {
+			args = append(args, "-o", "retry=0,timeo=10") // Fail if NFS server can't be reached in one second (no retries) - aggressive, but necessary because the Docker daemon becomes unresponsive if the mount command hangs
+		}
 		// Using the mount command rather than the mount syscall because for NFS mounts, the syscall requires us to figure out our own IP address
-		cmd := exec.Command("mount", modeFlag, m.Source, dest)
+		cmd := exec.Command("mount", args)
 		var out bytes.Buffer
 		cmd.Stderr = &out
 		if err := cmd.Run(); err != nil {
-			e := fmt.Errorf("Failed to mount %s device %s to %s with mode flag %s: %s - %s", m.Device, m.Source, dest, modeFlag, err, strings.TrimRight(out.String(), "\n"))
+			e := fmt.Errorf("Failed to mount %s device %s to %s with arguments %v: %s - %s", m.Device, m.Source, dest, args[2:], err, strings.TrimRight(out.String(), "\n"))
 			fmt.Fprintf(os.Stderr, "%s\n", e)
 			return e
 		}
-		fmt.Fprintf(os.Stderr, "Succeeded in mounting %s device %s to %s with mode flag %s\n", m.Device, m.Source, dest, modeFlag)
+		fmt.Fprintf(os.Stderr, "Succeeded in mounting %s device %s to %s with arguments %v\n", m.Device, m.Source, dest, args[2:])
 		//TODO: The bind mount does a remount here for readonly mounts - why?
 	case "cgroup":
 		mounts, err := cgroups.GetCgroupMounts()
