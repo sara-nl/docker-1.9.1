@@ -183,7 +183,7 @@ func mountToRootfs(m *configs.Mount, rootfs, mountLabel string) error {
 			args = append(args, "-o", "retry=0,timeo=10") // Fail if NFS server can't be reached in one second (no retries) - aggressive, but necessary because the Docker daemon becomes unresponsive if the mount command hangs
 		}
 		// Using the mount command rather than the mount syscall because for NFS mounts, the syscall requires us to figure out our own IP address
-		cmd := exec.Command("mount", args)
+		cmd := exec.Command("mount", args...)
 		var out bytes.Buffer
 		cmd.Stderr = &out
 		if err := cmd.Run(); err != nil {
