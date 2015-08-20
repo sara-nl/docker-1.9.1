@@ -129,6 +129,7 @@ type Mount struct {
 	Writable    bool   `json:"writable"`
 	Private     bool   `json:"private"`
 	Slave       bool   `json:"slave"`
+	Driver      string `json:"driver"`
 }
 
 // Describes a process that will be run inside a container.

@@ -24,6 +24,8 @@ import (
 	"github.com/docker/docker/utils"
 	volumedrivers "github.com/docker/docker/volume/drivers"
 	"github.com/docker/docker/volume/local"
+	"github.com/docker/docker/volume/ceph"
+	"github.com/docker/docker/volume/nfs"
 	"github.com/docker/libnetwork"
 	nwapi "github.com/docker/libnetwork/api"
 	nwconfig "github.com/docker/libnetwork/config"
@@ -257,6 +259,10 @@ func configureVolumes(config *Config) error {
 		return err
 	}
 	volumedrivers.Register(volumesDriver, volumesDriver.Name())
+	cephVolumesDriver := cephvolumedriver.New()
+	volumedrivers.Register(cephVolumesDriver, cephVolumesDriver.Name())
+	nfsVolumesDriver := nfsvolumedriver.New()
+	volumedrivers.Register(nfsVolumesDriver, nfsVolumesDriver.Name())
 	return nil
 }
 
