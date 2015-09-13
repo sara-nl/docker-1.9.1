@@ -10,7 +10,10 @@ import (
 	"bytes"
 	"strings"
 	"fmt"
+	"strconv"
 )
+
+const CephImageSizeMB = 1000000 // 1TB
 
 func New() *Root {
 	return &Root{
@@ -34,20 +37,37 @@ func (r *Root) Create(name string) (volume.Volume, error) {
 	v, exists := r.volumes[name]
 	if !exists {
 		//TODO: Might want to map with --options rw/ro here, but then we need to sneak in the RW flag somehow
-		cmd := exec.Command("rbd", "map", name)
 		var stdout bytes.Buffer
 		var stderr bytes.Buffer
+
+		cmd := exec.Command("rbd", "create", name, "--size", strconv.Itoa(CephImageSizeMB))
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
-		var mappedDevicePath string
 		if err := cmd.Run(); err == nil {
-			mappedDevicePath = strings.TrimRight(stdout.String(), "\n")
-			logrus.Infof("Succeeded in mapping Ceph volume %s to %s", name, mappedDevicePath)
-		} else {
-			msg := fmt.Sprintf("Failed to map Ceph volume %s: %s - %s", name, err, strings.TrimRight(stderr.String(), "\n"))
+			logrus.Infof("Created Ceph volume %s", name)
+			mappedDevicePath, err := mapCephVolume(name)
+			if err != nil {
+				return nil, err
+			}
+			cmd = exec.Command("mkfs.ext4", "-m0", mappedDevicePath)
+			logrus.Infof("Creating ext4 fs in volume %s", mappedDevicePath)
+			if err := cmd.Run(); err != nil {
+				return nil, err
+			}
+			if err := unmapCephVolume(name, mappedDevicePath); err != nil {
+				return nil, err
+			}
+		} else if !strings.Contains(stdout.String(), fmt.Sprintf("rbd image %s already exists", name)) {
+			msg := fmt.Sprintf("Error creating Ceph volume %s - %s", name, err)
 			logrus.Errorf(msg)
 			return nil, errors.New(msg)
 		}
+
+		mappedDevicePath, err := mapCephVolume(name)
+		if err != nil {
+			return nil, err
+		}
+
 		v = &Volume{
 			driverName:       r.Name(),
 			name:             name,
@@ -57,6 +77,25 @@ func (r *Root) Create(name string) (volume.Volume, error) {
 	}
 	v.use()
 	return v, nil
+}
+
+func mapCephVolume(name string) (string, error) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := exec.Command("rbd", "map", name)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	var mappedDevicePath string
+	if err := cmd.Run(); err == nil {
+		mappedDevicePath = strings.TrimRight(stdout.String(), "\n")
+		logrus.Infof("Succeeded in mapping Ceph volume %s to %s", name, mappedDevicePath)
+		return mappedDevicePath, nil
+	} else {
+		msg := fmt.Sprintf("Failed to map Ceph volume %s: %s - %s", name, err, strings.TrimRight(stderr.String(), "\n"))
+		logrus.Errorf(msg)
+		return "", errors.New(msg)
+	}
+
 }
 
 func (r *Root) Remove(v volume.Volume) error {
@@ -69,17 +108,23 @@ func (r *Root) Remove(v volume.Volume) error {
 	}
 	lv.release()
 	if lv.usedCount == 0 {
-		cmd := exec.Command("rbd", "unmap", lv.mappedDevicePath)
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-		if err := cmd.Run(); err == nil {
-			logrus.Infof("Succeeded in unmapping Ceph volume %s from %s", lv.name, lv.mappedDevicePath)
-		} else {
-			logrus.Errorf("Failed to unmap Ceph volume %s from %s: %s - %s", lv.name, lv.mappedDevicePath, err, strings.TrimRight(stderr.String(), "\n"))
-		}
+		unmapCephVolume(lv.name, lv.mappedDevicePath)
 		delete(r.volumes, lv.name)
 	}
 	return nil
+}
+
+func unmapCephVolume(name, mappedDevicePath string) error {
+	cmd := exec.Command("rbd", "unmap", mappedDevicePath)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err == nil {
+		logrus.Infof("Succeeded in unmapping Ceph volume %s from %s", name, mappedDevicePath)
+	} else {
+		logrus.Errorf("Failed to unmap Ceph volume %s from %s: %s - %s", name, mappedDevicePath, err, strings.TrimRight(stderr.String(), "\n"))
+	}
+	return err
 }
 
 type Volume struct {
