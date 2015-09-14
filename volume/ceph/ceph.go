@@ -51,13 +51,13 @@ func (r *Root) Create(name string) (volume.Volume, error) {
 				return nil, err
 			}
 			cmd = exec.Command("mkfs.ext4", "-m0", mappedDevicePath)
-			logrus.Infof("Creating ext4 fs in volume %s", mappedDevicePath)
+			logrus.Infof("Creating ext4 filesystem in newly created Ceph volume %s (device %s)", name, mappedDevicePath)
 			if err := cmd.Run(); err != nil {
-				logrus.Errorf("Failed to create ext4 fs in %s - %s", mappedDevicePath, err)
+				logrus.Errorf("Failed to create ext4 filesystem in newly created Ceph volume %s (device %s) - %s", name, mappedDevicePath, err)
 				return nil, err
 			}
 		} else if strings.Contains(stdout.String(), fmt.Sprintf("rbd image %s already exists", name)) {
-			logrus.Infof("Found Ceph volume %s", name)
+			logrus.Infof("Found existing Ceph volume %s", name)
 			mappedDevicePath, err = mapCephVolume(name)
 			if err != nil {
 				return nil, err
