@@ -13,7 +13,7 @@ import (
 	"strconv"
 )
 
-const CephImageSizeMB = 1000000 // 1TB
+const CephImageSizeMB = 1024 * 1024 // 1TB
 
 func New() *Root {
 	return &Root{
@@ -39,33 +39,33 @@ func (r *Root) Create(name string) (volume.Volume, error) {
 		//TODO: Might want to map with --options rw/ro here, but then we need to sneak in the RW flag somehow
 		var stdout bytes.Buffer
 		var stderr bytes.Buffer
+		var mappedDevicePath string
 
 		cmd := exec.Command("rbd", "create", name, "--size", strconv.Itoa(CephImageSizeMB))
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
 		if err := cmd.Run(); err == nil {
 			logrus.Infof("Created Ceph volume %s", name)
-			mappedDevicePath, err := mapCephVolume(name)
+			mappedDevicePath, err = mapCephVolume(name)
 			if err != nil {
 				return nil, err
 			}
 			cmd = exec.Command("mkfs.ext4", "-m0", mappedDevicePath)
 			logrus.Infof("Creating ext4 fs in volume %s", mappedDevicePath)
 			if err := cmd.Run(); err != nil {
+				logrus.Errorf("Failed to create ext4 fs in %s - %s", mappedDevicePath, err)
 				return nil, err
 			}
-			if err := unmapCephVolume(name, mappedDevicePath); err != nil {
+		} else if strings.Contains(stdout.String(), fmt.Sprintf("rbd image %s already exists", name)) {
+			logrus.Infof("Found Ceph volume %s", name)
+			mappedDevicePath, err = mapCephVolume(name)
+			if err != nil {
 				return nil, err
 			}
-		} else if !strings.Contains(stdout.String(), fmt.Sprintf("rbd image %s already exists", name)) {
-			msg := fmt.Sprintf("Error creating Ceph volume %s - %s", name, err)
+		} else {
+			msg := fmt.Sprintf("Failed to create Ceph volume %s - %s", name, err)
 			logrus.Errorf(msg)
 			return nil, errors.New(msg)
-		}
-
-		mappedDevicePath, err := mapCephVolume(name)
-		if err != nil {
-			return nil, err
 		}
 
 		v = &Volume{
