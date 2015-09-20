@@ -4,13 +4,13 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/docker/docker/volume"
-	"github.com/Sirupsen/logrus"
-	"os/exec"
 	"bytes"
-	"strings"
 	"fmt"
+	"github.com/Sirupsen/logrus"
+	"github.com/docker/docker/volume"
+	"os/exec"
 	"strconv"
+	"strings"
 )
 
 const CephImageSizeMB = 1024 * 1024 // 1TB
@@ -56,7 +56,7 @@ func (r *Root) Create(name string) (volume.Volume, error) {
 				logrus.Errorf("Failed to create ext4 filesystem in newly created Ceph volume %s (device %s) - %s", name, mappedDevicePath, err)
 				return nil, err
 			}
-		} else if strings.Contains(stdout.String(), fmt.Sprintf("rbd image %s already exists", name)) {
+		} else if strings.Contains(stderr.String(), fmt.Sprintf("rbd image %s already exists", name)) {
 			logrus.Infof("Found existing Ceph volume %s", name)
 			mappedDevicePath, err = mapCephVolume(name)
 			if err != nil {
