@@ -1,28 +1,3 @@
-
-Docker@Medallia
-==================================
-
-There are shortcomings in the options that docker provides regarding network configuration. In [Medallia](http://www.medallia.com) we wanted to use Docker to run microservices in containers, but not only that but also databases, load balancers, zookeeper, and even DNS server.
-
-There are multiple [proposals](https://github.com/docker/docker/issues/8951) to provide a configurable backend and network drivers in Docker, in order to cover most basic and advanced networking escenarios. But unfortunately those are yet to come. Thus the justification of this fork.
-
-We provide then a new network mode, called "routed", that doesn't rely on the docker0 bridge but still isolates the network stack from the host. It's based on pure layer 3 routing, basically adding one route in the host and one in the container. The container has a default route using one end of the veth and the host has a route to the container IP address via the other end of the veth. Then is responsibility of the host to publish that it has access to a container in a given IP address (using OSPF in our case).
-
-![Network](docs/theme/mkdocs/images/network1.png "Network")
-
-
-## How to use it
-
-Start the container using the routed network mode and setting the IP4 address with the new parameter ip-address
-
-    % docker run -ti --net=routed --ip-address=10.1.2.3/32 ubuntu /bin/bash
-
-## Contact us
-
-Give it a try and reach us in [docker@medallia.com](mailto:docker@medallia.com)
-
----
-
 Docker: the Linux container engine
 ==================================
 

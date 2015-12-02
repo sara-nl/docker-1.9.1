@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -101,8 +100,6 @@ type Container struct {
 	// Store rw/ro in a separate structure to preserve reverse-compatibility on-disk.
 	// Easier than migrating older container configs :)
 	VolumesRW  map[string]bool
-	VolumesDevice map[string]string
-	VolumesDriver map[string]string
 	hostConfig *runconfig.HostConfig
 
 	activeLinks  map[string]*links.Link
@@ -271,12 +268,9 @@ func populateCommand(c *Container, env []string) error {
 	case "none":
 	case "host":
 		en.HostNetworking = true
-	case "bridge", "routed", "": // empty string to support existing containers
+	case "bridge", "": // empty string to support existing containers
 		if !c.Config.NetworkDisabled {
 			network := c.NetworkSettings
-			if c.Config.Ip4Address != "" {
-				en.RoutedNetworking = true
-			}
 			en.Interface = &execdriver.NetworkInterface{
 				Gateway:              network.Gateway,
 				Bridge:               network.Bridge,
@@ -441,7 +435,7 @@ func (container *Container) Start() (err error) {
 		return err
 	}
 	container.verifyDaemonSettings()
-	if err := container.prepareVolumes(true); err != nil {
+	if err := container.prepareVolumes(); err != nil {
 		return err
 	}
 	linkedEnv, err := container.setupLinkedContainers()
@@ -584,7 +578,7 @@ func (container *Container) AllocateNetwork() error {
 		eng = container.daemon.eng
 	)
 
-	networkSettings, err := bridge.Allocate(container.ID, container.Config.MacAddress, container.Config.Ip4Address, "", mode.IsRouted())
+	networkSettings, err := bridge.Allocate(container.ID, container.Config.MacAddress, "", "")
 	if err != nil {
 		return err
 	}
@@ -668,7 +662,7 @@ func (container *Container) RestoreNetwork() error {
 	eng := container.daemon.eng
 
 	// Re-allocate the interface with the same IP and MAC address.
-	if _, err := bridge.Allocate(container.ID, container.NetworkSettings.MacAddress, container.NetworkSettings.IPAddress, "", mode.IsRouted()); err != nil {
+	if _, err := bridge.Allocate(container.ID, container.NetworkSettings.MacAddress, container.NetworkSettings.IPAddress, ""); err != nil {
 		return err
 	}
 
@@ -697,48 +691,8 @@ func (container *Container) cleanup() {
 		logrus.Errorf("%v: Failed to umount filesystem: %v", container.ID, err)
 	}
 
-	// I think this is the correct place for RBD/NFS unmounting and unmaping, rather than Container.Unmount(), which is called in a lot of other situations too.
-	// Container.cleanup() is only called by Container.Start(), which is the only place that calls Container.prepareVolumes(true),
-	// which is the only way to trigger Mount.initialize(true), which is currently where we perform the RBD/NFS mapping and mounting.
-	for mountToPath, path := range container.Volumes {
-		driver := container.VolumesDriver[mountToPath]
-		device := container.VolumesDevice[mountToPath]
-		if driver == "" || device == "" {
-			continue
-		}
-
-		logrus.Infof("Unmounting %s device %s from %s", driver, device, path)
-		cmd := exec.Command("umount", path)
-		var out bytes.Buffer
-		cmd.Stderr = &out
-		err := cmd.Run()
-		if err == nil {
-			logrus.Infof("Succeeded in unmounting %s device %s from %s", driver, device, path)
-		} else {
-			logrus.Errorf("Failed to unmount %s device %s from %s: %s - %s", driver, device, path, err, strings.TrimRight(out.String(), "\n"))
-		}
-
-		if driver == "ceph" {
-			UnmapCephDevice(device)
-		}
-		// Note that NFS doesn't require unmapping
-	}
-
 	for _, eConfig := range container.execCommands.s {
 		container.daemon.unregisterExecCommand(eConfig)
-	}
-}
-
-func UnmapCephDevice(cephDevice string) {
-	logrus.Infof("Unmapping Ceph volume from %s", cephDevice)
-	cmd := exec.Command("rbd", "unmap", cephDevice)
-	var out bytes.Buffer
-	cmd.Stderr = &out
-	err := cmd.Run()
-	if err == nil {
-		logrus.Infof("Succeeded in unmapping Ceph volume from %s", cephDevice)
-	} else {
-		logrus.Errorf("Failed to unmap Ceph volume from %s: %s - %s", cephDevice, err, strings.TrimRight(out.String(), "\n"))
 	}
 }
 
@@ -1504,7 +1458,7 @@ func (container *Container) allocatePort(eng *engine.Engine, port nat.Port, bind
 	}
 
 	for i := 0; i < len(binding); i++ {
-		b, err := bridge.AllocatePort(container.ID, port, binding[i], container.hostConfig.NetworkMode.IsRouted())
+		b, err := bridge.AllocatePort(container.ID, port, binding[i])
 		if err != nil {
 			return err
 		}

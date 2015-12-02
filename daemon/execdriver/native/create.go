@@ -105,12 +105,6 @@ func (d *driver) createNetwork(container *configs.Config, c *execdriver.Command)
 		return err
 	}
 	if c.Network.Interface != nil {
-		networkType := "veth"
-
-		if c.Network.RoutedNetworking {
-			networkType = "routed"
-		}
-
 		vethNetwork := configs.Network{
 			Name:              "eth0",
 			HostInterfaceName: iName,
@@ -118,7 +112,7 @@ func (d *driver) createNetwork(container *configs.Config, c *execdriver.Command)
 			Address:           fmt.Sprintf("%s/%d", c.Network.Interface.IPAddress, c.Network.Interface.IPPrefixLen),
 			MacAddress:        c.Network.Interface.MacAddress,
 			Gateway:           c.Network.Interface.Gateway,
-			Type:              networkType,
+			Type:              "veth",
 			Bridge:            c.Network.Interface.Bridge,
 		}
 		if c.Network.Interface.GlobalIPv6Address != "" {

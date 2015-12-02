@@ -88,7 +88,7 @@ func (daemon *Daemon) Create(config *runconfig.Config, hostConfig *runconfig.Hos
 		return nil, nil, err
 	}
 	defer container.Unmount()
-	if err := container.prepareVolumes(false); err != nil {
+	if err := container.prepareVolumes(); err != nil {
 		return nil, nil, err
 	}
 	if err := container.ToDisk(); err != nil {

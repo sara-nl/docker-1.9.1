@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/symlink"
 )
@@ -17,9 +16,6 @@ import (
 type Volume struct {
 	ID          string
 	Path        string
-	Driver      string
-	DriverDevice string
-	DriverVolume string
 	IsBindMount bool
 	Writable    bool
 	containers  map[string]struct{}
@@ -94,19 +90,10 @@ func (v *Volume) initialize() error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
-	if v.Driver == "ceph" {
-		log.Infof("Initializing Ceph volume: %s -> %s -> %s", v.DriverVolume, v.DriverDevice, v.Path)
-	} else if (v.Driver == "nfs") {
-		log.Infof("Initializing NFS volume: %s -> %s", v.DriverDevice, v.Path)
-	} else {
-		log.Infof("Initializing volume: %s", v.Path)
-	}
-
 	if _, err := os.Stat(v.Path); err != nil {
 		if !os.IsNotExist(err) {
 			return err
 		}
-		log.Infof("Creating %s", v.Path)
 		if err := os.MkdirAll(v.Path, 0755); err != nil {
 			return err
 		}

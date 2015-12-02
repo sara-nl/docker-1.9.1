@@ -34,10 +34,6 @@ func (n NetworkMode) IsNone() bool {
 	return n == "none"
 }
 
-func (n NetworkMode) IsRouted() bool {
-    return n == "routed"
-}
-
 type IpcMode string
 
 // IsPrivate indicates whether container use it's private ipc stack

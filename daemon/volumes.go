@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"os/exec"
-	"bytes"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/daemon/execdriver"
@@ -24,7 +22,6 @@ type Mount struct {
 	container   *Container
 	volume      *volumes.Volume
 	Writable    bool
-	Driver      string
 	copyData    bool
 	from        *Container
 	isBind      bool
@@ -42,15 +39,13 @@ func (mnt *Mount) Export(resource string) (io.ReadCloser, error) {
 	return mnt.volume.Export(path, name)
 }
 
-func (container *Container) prepareVolumes(isStarting bool) error {
+func (container *Container) prepareVolumes() error {
 	if container.Volumes == nil || len(container.Volumes) == 0 {
 		container.Volumes = make(map[string]string)
 		container.VolumesRW = make(map[string]bool)
-		container.VolumesDevice = make(map[string]string)
-		container.VolumesDriver = make(map[string]string)
 	}
 
-	return container.createVolumes(isStarting)
+	return container.createVolumes()
 }
 
 // sortedVolumeMounts returns the list of container volume mount points sorted in lexicographic order
@@ -64,68 +59,23 @@ func (container *Container) sortedVolumeMounts() []string {
 	return mountPaths
 }
 
-func (container *Container) createVolumes(isStarting bool) error {
+func (container *Container) createVolumes() error {
 	mounts, err := container.parseVolumeMountConfig()
 	if err != nil {
 		return err
 	}
 
 	for _, mnt := range mounts {
-		if err := mnt.initialize(isStarting); err != nil {
+		if err := mnt.initialize(); err != nil {
 			return err
 		}
 	}
 
 	// On every start, this will apply any new `VolumesFrom` entries passed in via HostConfig, which may override volumes set in `create`
-	return container.applyVolumesFrom(isStarting)
+	return container.applyVolumesFrom()
 }
 
-func (m *Mount) initialize(isStarting bool) error {
-	v := m.volume
-	logrus.Infof("Initializing mount: %s -> %s%s (driver: %s; is starting: %t)", v.Path, m.container.basefs, m.MountToPath, v.Driver, isStarting)
-
-	//TODO: Is it correct to do this here, or should we consider the existence check below?
-	if v.Driver == "ceph" && isStarting {
-		modeOption := "rw"
-		if (!v.Writable) {
-			modeOption = "ro"
-		}
-		logrus.Infof("Mapping Ceph volume %s with the %s option", v.DriverVolume, modeOption)
-		cmd := exec.Command("rbd", "map", v.DriverVolume, "--options", modeOption)
-		var out bytes.Buffer
-		cmd.Stderr = &out
-		err := cmd.Run()
-		if err == nil {
-			logrus.Infof("Succeeded in mapping Ceph volume %s with the %s option", v.DriverVolume, modeOption)
-		} else {
-			msg := fmt.Sprintf("Failed to map Ceph volume %s with the %s option: %s - %s", v.DriverVolume, modeOption, err, strings.TrimRight(out.String(), "\n"))
-			logrus.Errorf(msg)
-			return fmt.Errorf(msg)
-		}
-	}
-
-	if (v.Driver == "ceph" || v.Driver == "nfs") && isStarting {
-		modeFlag := "--rw"
-		if !v.Writable {
-			modeFlag = "--read-only"
-		}
-		logrus.Infof("Mounting %s device %s to %s with the %s flag", v.Driver, v.DriverDevice, v.Path, modeFlag)
-		cmd := exec.Command("mount", modeFlag, v.DriverDevice, v.Path)
-		var out bytes.Buffer
-		cmd.Stderr = &out
-		err := cmd.Run()
-		if err == nil {
-			logrus.Infof("Succeeded in mounting %s device %s to %s with the %s flag", v.Driver, v.DriverDevice, v.Path, modeFlag)
-		} else {
-			msg := fmt.Sprintf("Failed to mount %s device %s to %s with the %s flag (will attempt to unmap the volume): %s - %s", v.Driver, v.DriverDevice, v.Path, modeFlag, err, strings.TrimRight(out.String(), "\n"))
-			logrus.Errorf(msg)
-			if v.Driver == "ceph" {
-				UnmapCephDevice(v.DriverDevice)
-			}
-			return fmt.Errorf(msg)
-		}
-	}
-
+func (m *Mount) initialize() error {
 	// No need to initialize anything since it's already been initialized
 	if hostPath, exists := m.container.Volumes[m.MountToPath]; exists {
 		// If this is a bind-mount/volumes-from, maybe it was passed in at start instead of create
@@ -150,10 +100,8 @@ func (m *Mount) initialize(isStarting bool) error {
 	if err != nil {
 		return err
 	}
-	m.container.Volumes[m.MountToPath] = m.volume.Path
 	m.container.VolumesRW[m.MountToPath] = m.Writable
-	m.container.VolumesDevice[m.MountToPath] = m.volume.DriverDevice
-	m.container.VolumesDriver[m.MountToPath] = m.volume.Driver
+	m.container.Volumes[m.MountToPath] = m.volume.Path
 	m.volume.AddContainer(m.container.ID)
 	if m.Writable && m.copyData {
 		// Copy whatever is in the container at the mntToPath to the volume
@@ -183,7 +131,7 @@ func (container *Container) registerVolumes() {
 		if rw, exists := container.VolumesRW[path]; exists {
 			writable = rw
 		}
-		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable, container.VolumesDriver[path])
+		v, err := container.daemon.volumes.FindOrCreateVolume(path, writable)
 		if err != nil {
 			logrus.Debugf("error registering volume %s: %v", path, err)
 			continue
@@ -207,19 +155,16 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 	var mounts = make(map[string]*Mount)
 	// Get all the bind mounts
 	for _, spec := range container.hostConfig.Binds {
-		path, mountToPath, writable, driver, err := parseBindMountSpec(spec)
+		path, mountToPath, writable, err := parseBindMountSpec(spec)
 		if err != nil {
 			return nil, err
-		}
-		if (!(driver == "" || driver == "nfs" || driver == "ceph")) {
-			return nil, fmt.Errorf("Unrecognized volume driver '%s'", driver)
 		}
 		// Check if a bind mount has already been specified for the same container path
 		if m, exists := mounts[mountToPath]; exists {
 			return nil, fmt.Errorf("Duplicate volume %q: %q already in use, mounted from %q", path, mountToPath, m.volume.Path)
 		}
 		// Check if a volume already exists for this and use it
-		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable, driver)
+		vol, err := container.daemon.volumes.FindOrCreateVolume(path, writable)
 		if err != nil {
 			return nil, err
 		}
@@ -254,7 +199,7 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 			}
 		}
 
-		vol, err := container.daemon.volumes.FindOrCreateVolume("", true, "")
+		vol, err := container.daemon.volumes.FindOrCreateVolume("", true)
 		if err != nil {
 			return nil, err
 		}
@@ -270,11 +215,10 @@ func (container *Container) parseVolumeMountConfig() (map[string]*Mount, error) 
 	return mounts, nil
 }
 
-func parseBindMountSpec(spec string) (string, string, bool, string, error) {
+func parseBindMountSpec(spec string) (string, string, bool, error) {
 	var (
 		path, mountToPath string
 		writable          bool
-		driver            string
 		arr               = strings.Split(spec, ":")
 	)
 
@@ -283,28 +227,21 @@ func parseBindMountSpec(spec string) (string, string, bool, string, error) {
 		path = arr[0]
 		mountToPath = arr[1]
 		writable = true
-		driver = ""
 	case 3:
 		path = arr[0]
 		mountToPath = arr[1]
-		writable, driver = parseMountOptions(arr[2])
+		writable = validMountMode(arr[2]) && arr[2] == "rw"
 	default:
-		return "", "", false, "", fmt.Errorf("Invalid volume specification: %s", spec)
+		return "", "", false, fmt.Errorf("Invalid volume specification: %s", spec)
 	}
 
-	//TODO: If ceph, check that path is a valid ceph volume name
-	if driver == "" {
-		if !filepath.IsAbs(path) {
-			return "", "", false, "", fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
-		} else {
-			path = filepath.Clean(path)
-		}
-	} else if driver == "nfs" {
-		path = strings.Replace(path, "/", ":/", 1)
+	if !filepath.IsAbs(path) {
+		return "", "", false, fmt.Errorf("cannot bind mount volume: %s volume paths must be absolute.", path)
 	}
 
+	path = filepath.Clean(path)
 	mountToPath = filepath.Clean(mountToPath)
-	return path, mountToPath, writable, driver, nil
+	return path, mountToPath, writable, nil
 }
 
 func parseVolumesFromSpec(spec string) (string, string, error) {
@@ -326,7 +263,7 @@ func parseVolumesFromSpec(spec string) (string, string, error) {
 	return id, mode, nil
 }
 
-func (container *Container) applyVolumesFrom(isStarting bool) error {
+func (container *Container) applyVolumesFrom() error {
 	volumesFrom := container.hostConfig.VolumesFrom
 	if len(volumesFrom) > 0 && container.AppliedVolumesFrom == nil {
 		container.AppliedVolumesFrom = make(map[string]struct{})
@@ -365,7 +302,7 @@ func (container *Container) applyVolumesFrom(isStarting bool) error {
 		for _, mnt := range mounts {
 			mnt.from = mnt.container
 			mnt.container = container
-			if err := mnt.initialize(isStarting); err != nil {
+			if err := mnt.initialize(); err != nil {
 				return err
 			}
 		}
@@ -381,23 +318,6 @@ func validMountMode(mode string) bool {
 	}
 
 	return validModes[mode]
-}
-
-func parseMountOptions(options string) (bool, string) {
-	var (
-		writable = false
-		driver = ""
-	)
-	for _, option := range strings.Split(options, ",") {
-		if option == "ro" {
-			writable = false
-		} else if option == "rw" {
-			writable = true
-		} else {
-			driver = option
-		}
-	}
-	return writable, driver
 }
 
 func (container *Container) setupMounts() error {

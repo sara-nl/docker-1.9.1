@@ -181,7 +181,7 @@ func TestLinkContainers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := LinkContainers("-I", "172.17.0.1", "172.17.0.2", []nat.Port{nat.Port("1234")}, false, false); err != nil {
+	if err := LinkContainers("-I", "172.17.0.1", "172.17.0.2", []nat.Port{nat.Port("1234")}, false); err != nil {
 		t.Fatal("LinkContainers failed")
 	}
 

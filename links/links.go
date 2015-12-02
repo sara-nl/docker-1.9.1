@@ -157,5 +157,5 @@ func (l *Link) Disable() {
 }
 
 func (l *Link) toggle(action string, ignoreErrors bool) error {
-	return bridge.LinkContainers(action, l.ParentIP, l.ChildIP, l.Ports, ignoreErrors, false)
+	return bridge.LinkContainers(action, l.ParentIP, l.ChildIP, l.Ports, ignoreErrors)
 }
