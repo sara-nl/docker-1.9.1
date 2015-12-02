@@ -5,13 +5,17 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
+	Cli "github.com/docker/docker/cli"
+	derr "github.com/docker/docker/errors"
 	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/promise"
-	"github.com/docker/docker/pkg/resolvconf"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/docker/runconfig"
+	"github.com/docker/libnetwork/resolvconf/dns"
 )
 
 func (cid *cidFile) Close() error {
@@ -34,19 +38,42 @@ func (cid *cidFile) Write(id string) error {
 	return nil
 }
 
+// if container start fails with 'command not found' error, return 127
+// if container start fails with 'command cannot be invoked' error, return 126
+// return 125 for generic docker daemon failures
+func runStartContainerErr(err error) error {
+	trimmedErr := strings.Trim(err.Error(), "Error response from daemon: ")
+	statusError := Cli.StatusError{}
+	derrCmdNotFound := derr.ErrorCodeCmdNotFound.Message()
+	derrCouldNotInvoke := derr.ErrorCodeCmdCouldNotBeInvoked.Message()
+	derrNoSuchImage := derr.ErrorCodeNoSuchImageHash.Message()
+	derrNoSuchImageTag := derr.ErrorCodeNoSuchImageTag.Message()
+	switch trimmedErr {
+	case derrCmdNotFound:
+		statusError = Cli.StatusError{StatusCode: 127}
+	case derrCouldNotInvoke:
+		statusError = Cli.StatusError{StatusCode: 126}
+	case derrNoSuchImage, derrNoSuchImageTag:
+		statusError = Cli.StatusError{StatusCode: 125}
+	default:
+		statusError = Cli.StatusError{StatusCode: 125}
+	}
+	return statusError
+}
+
 // CmdRun runs a command in a new container.
 //
 // Usage: docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
 func (cli *DockerCli) CmdRun(args ...string) error {
-	// FIXME: just use runconfig.Parse already
-	cmd := cli.Subcmd("run", "IMAGE [COMMAND] [ARG...]", "Run a command in a new container", true)
+	cmd := Cli.Subcmd("run", []string{"IMAGE [COMMAND] [ARG...]"}, Cli.DockerCommands["run"].Description, true)
+	addTrustedFlags(cmd, true)
 
 	// These are flags not stored in Config/HostConfig
 	var (
-		flAutoRemove = cmd.Bool([]string{"#rm", "-rm"}, false, "Automatically remove the container when it exits")
+		flAutoRemove = cmd.Bool([]string{"-rm"}, false, "Automatically remove the container when it exits")
 		flDetach     = cmd.Bool([]string{"d", "-detach"}, false, "Run container in background and print container ID")
-		flSigProxy   = cmd.Bool([]string{"#sig-proxy", "-sig-proxy"}, true, "Proxy received signals to the process")
-		flName       = cmd.String([]string{"#name", "-name"}, "", "Assign a name to the container")
+		flSigProxy   = cmd.Bool([]string{"-sig-proxy"}, true, "Proxy received signals to the process")
+		flName       = cmd.String([]string{"-name"}, "", "Assign a name to the container")
 		flAttach     *opts.ListOpts
 
 		ErrConflictAttachDetach               = fmt.Errorf("Conflicting options: -a and -d")
@@ -58,14 +85,19 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 	// just in case the Parse does not exit
 	if err != nil {
 		cmd.ReportError(err.Error(), true)
+		os.Exit(125)
 	}
 
-	if len(hostConfig.Dns) > 0 {
+	if hostConfig.OomKillDisable && hostConfig.Memory == 0 {
+		fmt.Fprintf(cli.err, "WARNING: Dangerous only disable the OOM Killer on containers but not set the '-m/--memory' option\n")
+	}
+
+	if len(hostConfig.DNS) > 0 {
 		// check the DNS settings passed via --dns against
 		// localhost regexp to warn if they are trying to
 		// set a DNS to a localhost address
-		for _, dnsIP := range hostConfig.Dns {
-			if resolvconf.IsLocalhost(dnsIP) {
+		for _, dnsIP := range hostConfig.DNS {
+			if dns.IsLocalhost(dnsIP) {
 				fmt.Fprintf(cli.err, "WARNING: Localhost DNS setting (--dns=%s) may fail in containers.\n", dnsIP)
 				break
 			}
@@ -75,6 +107,8 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		cmd.Usage()
 		return nil
 	}
+
+	config.ArgsEscaped = false
 
 	if !*flDetach {
 		if err := cli.CheckTtyInput(config.AttachStdin, config.Tty); err != nil {
@@ -103,9 +137,17 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		sigProxy = false
 	}
 
+	// Telling the Windows daemon the initial size of the tty during start makes
+	// a far better user experience rather than relying on subsequent resizes
+	// to cause things to catch up.
+	if runtime.GOOS == "windows" {
+		hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = cli.getTtySize()
+	}
+
 	createResponse, err := cli.createContainer(config, hostConfig, hostConfig.ContainerIDFile, *flName)
 	if err != nil {
-		return err
+		cmd.ReportError(err.Error(), true)
+		return runStartContainerErr(err)
 	}
 	if sigProxy {
 		sigc := cli.forwardAllSignals(createResponse.ID)
@@ -123,7 +165,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 			fmt.Fprintf(cli.out, "%s\n", createResponse.ID)
 		}()
 	}
-	if *flAutoRemove && (hostConfig.RestartPolicy.Name == "always" || hostConfig.RestartPolicy.Name == "on-failure") {
+	if *flAutoRemove && (hostConfig.RestartPolicy.IsAlways() || hostConfig.RestartPolicy.IsOnFailure()) {
 		return ErrConflictRestartPolicyAndAutoRemove
 	}
 	// We need to instantiate the chan because the select needs it. It can
@@ -133,7 +175,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 	defer func() {
 		logrus.Debugf("End of CmdRun(), Waiting for hijack to finish.")
 		if _, ok := <-hijacked; ok {
-			logrus.Errorf("Hijack did not finish (chan still open)")
+			fmt.Fprintln(cli.err, "Hijack did not finish (chan still open)")
 		}
 	}()
 	if config.AttachStdin || config.AttachStdout || config.AttachStderr {
@@ -183,19 +225,20 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 	defer func() {
 		if *flAutoRemove {
 			if _, _, err = readBody(cli.call("DELETE", "/containers/"+createResponse.ID+"?v=1", nil, nil)); err != nil {
-				logrus.Errorf("Error deleting container: %s", err)
+				fmt.Fprintf(cli.err, "Error deleting container: %s\n", err)
 			}
 		}
 	}()
 
 	//start the container
-	if _, _, err = readBody(cli.call("POST", "/containers/"+createResponse.ID+"/start", nil, nil)); err != nil {
-		return err
+	if _, _, err := readBody(cli.call("POST", "/containers/"+createResponse.ID+"/start", nil, nil)); err != nil {
+		cmd.ReportError(err.Error(), false)
+		return runStartContainerErr(err)
 	}
 
 	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && cli.isTerminalOut {
 		if err := cli.monitorTtySize(createResponse.ID, false); err != nil {
-			logrus.Errorf("Error monitoring TTY size: %s", err)
+			fmt.Fprintf(cli.err, "Error monitoring TTY size: %s\n", err)
 		}
 	}
 
@@ -220,7 +263,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		// Autoremove: wait for the container to finish, retrieve
 		// the exit code and remove the container
 		if _, _, err := readBody(cli.call("POST", "/containers/"+createResponse.ID+"/wait", nil, nil)); err != nil {
-			return err
+			return runStartContainerErr(err)
 		}
 		if _, status, err = getExitCode(cli, createResponse.ID); err != nil {
 			return err
@@ -241,7 +284,7 @@ func (cli *DockerCli) CmdRun(args ...string) error {
 		}
 	}
 	if status != 0 {
-		return StatusError{StatusCode: status}
+		return Cli.StatusError{StatusCode: status}
 	}
 	return nil
 }

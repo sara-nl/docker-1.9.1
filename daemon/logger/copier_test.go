@@ -12,17 +12,11 @@ type TestLoggerJSON struct {
 	*json.Encoder
 }
 
-func (l *TestLoggerJSON) Log(m *Message) error {
-	return l.Encode(m)
-}
+func (l *TestLoggerJSON) Log(m *Message) error { return l.Encode(m) }
 
-func (l *TestLoggerJSON) Close() error {
-	return nil
-}
+func (l *TestLoggerJSON) Close() error { return nil }
 
-func (l *TestLoggerJSON) Name() string {
-	return "json"
-}
+func (l *TestLoggerJSON) Name() string { return "json" }
 
 type TestLoggerText struct {
 	*bytes.Buffer
@@ -33,13 +27,9 @@ func (l *TestLoggerText) Log(m *Message) error {
 	return err
 }
 
-func (l *TestLoggerText) Close() error {
-	return nil
-}
+func (l *TestLoggerText) Close() error { return nil }
 
-func (l *TestLoggerText) Name() string {
-	return "text"
-}
+func (l *TestLoggerText) Name() string { return "text" }
 
 func TestCopier(t *testing.T) {
 	stdoutLine := "Line that thinks that it is log line from docker stdout"
@@ -60,15 +50,12 @@ func TestCopier(t *testing.T) {
 	jsonLog := &TestLoggerJSON{Encoder: json.NewEncoder(&jsonBuf)}
 
 	cid := "a7317399f3f857173c6179d44823594f8294678dea9999662e5c625b5a1c7657"
-	c, err := NewCopier(cid,
+	c := NewCopier(cid,
 		map[string]io.Reader{
 			"stdout": &stdout,
 			"stderr": &stderr,
 		},
 		jsonLog)
-	if err != nil {
-		t.Fatal(err)
-	}
 	c.Run()
 	wait := make(chan struct{})
 	go func() {

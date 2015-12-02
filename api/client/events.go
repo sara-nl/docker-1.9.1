@@ -2,9 +2,9 @@ package client
 
 import (
 	"net/url"
-	"strconv"
 	"time"
 
+	Cli "github.com/docker/docker/cli"
 	"github.com/docker/docker/opts"
 	flag "github.com/docker/docker/pkg/mflag"
 	"github.com/docker/docker/pkg/parsers/filters"
@@ -15,8 +15,8 @@ import (
 //
 // Usage: docker events [OPTIONS]
 func (cli *DockerCli) CmdEvents(args ...string) error {
-	cmd := cli.Subcmd("events", "", "Get real time events from the server", true)
-	since := cmd.String([]string{"#since", "-since"}, "", "Show all events created since timestamp")
+	cmd := Cli.Subcmd("events", nil, Cli.DockerCommands["events"].Description, true)
+	since := cmd.String([]string{"-since"}, "", "Show all events created since timestamp")
 	until := cmd.String([]string{"-until"}, "", "Stream events until this timestamp")
 	flFilter := opts.NewListOpts(nil)
 	cmd.Var(&flFilter, []string{"f", "-filter"}, "Filter output based on conditions provided")
@@ -26,7 +26,6 @@ func (cli *DockerCli) CmdEvents(args ...string) error {
 
 	var (
 		v               = url.Values{}
-		loc             = time.FixedZone(time.Now().Zone())
 		eventFilterArgs = filters.Args{}
 	)
 
@@ -39,22 +38,20 @@ func (cli *DockerCli) CmdEvents(args ...string) error {
 			return err
 		}
 	}
-	var setTime = func(key, value string) {
-		format := timeutils.RFC3339NanoFixed
-		if len(value) < len(format) {
-			format = format[:len(value)]
-		}
-		if t, err := time.ParseInLocation(format, value, loc); err == nil {
-			v.Set(key, strconv.FormatInt(t.Unix(), 10))
-		} else {
-			v.Set(key, value)
-		}
-	}
+	ref := time.Now()
 	if *since != "" {
-		setTime("since", *since)
+		ts, err := timeutils.GetTimestamp(*since, ref)
+		if err != nil {
+			return err
+		}
+		v.Set("since", ts)
 	}
 	if *until != "" {
-		setTime("until", *until)
+		ts, err := timeutils.GetTimestamp(*until, ref)
+		if err != nil {
+			return err
+		}
+		v.Set("until", ts)
 	}
 	if len(eventFilterArgs) > 0 {
 		filterJSON, err := filters.ToParam(eventFilterArgs)
@@ -63,7 +60,11 @@ func (cli *DockerCli) CmdEvents(args ...string) error {
 		}
 		v.Set("filters", filterJSON)
 	}
-	if err := cli.stream("GET", "/events?"+v.Encode(), nil, cli.out, nil); err != nil {
+	sopts := &streamOpts{
+		rawTerminal: true,
+		out:         cli.out,
+	}
+	if _, err := cli.stream("GET", "/events?"+v.Encode(), sopts); err != nil {
 		return err
 	}
 	return nil

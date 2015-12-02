@@ -1,59 +1,96 @@
 package client
 
 import (
-	"fmt"
+	"encoding/json"
 	"runtime"
+	"text/template"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api"
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/engine"
+	"github.com/docker/docker/api/types"
+	Cli "github.com/docker/docker/cli"
+	"github.com/docker/docker/dockerversion"
 	flag "github.com/docker/docker/pkg/mflag"
+	"github.com/docker/docker/utils"
 )
+
+var versionTemplate = `Client:
+ Version:      {{.Client.Version}}
+ API version:  {{.Client.APIVersion}}
+ Go version:   {{.Client.GoVersion}}
+ Git commit:   {{.Client.GitCommit}}
+ Built:        {{.Client.BuildTime}}
+ OS/Arch:      {{.Client.Os}}/{{.Client.Arch}}{{if .Client.Experimental}}
+ Experimental: {{.Client.Experimental}}{{end}}{{if .ServerOK}}
+
+Server:
+ Version:      {{.Server.Version}}
+ API version:  {{.Server.APIVersion}}
+ Go version:   {{.Server.GoVersion}}
+ Git commit:   {{.Server.GitCommit}}
+ Built:        {{.Server.BuildTime}}
+ OS/Arch:      {{.Server.Os}}/{{.Server.Arch}}{{if .Server.Experimental}}
+ Experimental: {{.Server.Experimental}}{{end}}{{end}}`
+
+type versionData struct {
+	Client   types.Version
+	ServerOK bool
+	Server   types.Version
+}
 
 // CmdVersion shows Docker version information.
 //
 // Available version information is shown for: client Docker version, client API version, client Go version, client Git commit, client OS/Arch, server Docker version, server API version, server Go version, server Git commit, and server OS/Arch.
 //
 // Usage: docker version
-func (cli *DockerCli) CmdVersion(args ...string) error {
-	cmd := cli.Subcmd("version", "", "Show the Docker version information.", true)
+func (cli *DockerCli) CmdVersion(args ...string) (err error) {
+	cmd := Cli.Subcmd("version", nil, Cli.DockerCommands["version"].Description, true)
+	tmplStr := cmd.String([]string{"f", "#format", "-format"}, "", "Format the output using the given go template")
 	cmd.Require(flag.Exact, 0)
 
-	cmd.ParseFlags(args, false)
-
-	if dockerversion.VERSION != "" {
-		fmt.Fprintf(cli.out, "Client version: %s\n", dockerversion.VERSION)
+	cmd.ParseFlags(args, true)
+	if *tmplStr == "" {
+		*tmplStr = versionTemplate
 	}
-	fmt.Fprintf(cli.out, "Client API version: %s\n", api.APIVERSION)
-	fmt.Fprintf(cli.out, "Go version (client): %s\n", runtime.Version())
-	if dockerversion.GITCOMMIT != "" {
-		fmt.Fprintf(cli.out, "Git commit (client): %s\n", dockerversion.GITCOMMIT)
-	}
-	fmt.Fprintf(cli.out, "OS/Arch (client): %s/%s\n", runtime.GOOS, runtime.GOARCH)
 
-	body, _, err := readBody(cli.call("GET", "/version", nil, nil))
+	var tmpl *template.Template
+	if tmpl, err = template.New("").Funcs(funcMap).Parse(*tmplStr); err != nil {
+		return Cli.StatusError{StatusCode: 64,
+			Status: "Template parsing error: " + err.Error()}
+	}
+
+	vd := versionData{
+		Client: types.Version{
+			Version:      dockerversion.Version,
+			APIVersion:   api.Version,
+			GoVersion:    runtime.Version(),
+			GitCommit:    dockerversion.GitCommit,
+			BuildTime:    dockerversion.BuildTime,
+			Os:           runtime.GOOS,
+			Arch:         runtime.GOARCH,
+			Experimental: utils.ExperimentalBuild(),
+		},
+	}
+
+	defer func() {
+		if err2 := tmpl.Execute(cli.out, vd); err2 != nil && err == nil {
+			err = err2
+		}
+		cli.out.Write([]byte{'\n'})
+	}()
+
+	serverResp, err := cli.call("GET", "/version", nil, nil)
 	if err != nil {
 		return err
 	}
 
-	out := engine.NewOutput()
-	remoteVersion, err := out.AddEnv()
-	if err != nil {
-		logrus.Errorf("Error reading remote version: %s", err)
-		return err
+	defer serverResp.body.Close()
+
+	if err = json.NewDecoder(serverResp.body).Decode(&vd.Server); err != nil {
+		return Cli.StatusError{StatusCode: 1,
+			Status: "Error reading remote version: " + err.Error()}
 	}
-	if _, err := out.Write(body); err != nil {
-		logrus.Errorf("Error reading remote version: %s", err)
-		return err
-	}
-	out.Close()
-	fmt.Fprintf(cli.out, "Server version: %s\n", remoteVersion.Get("Version"))
-	if apiVersion := remoteVersion.Get("ApiVersion"); apiVersion != "" {
-		fmt.Fprintf(cli.out, "Server API version: %s\n", apiVersion)
-	}
-	fmt.Fprintf(cli.out, "Go version (server): %s\n", remoteVersion.Get("GoVersion"))
-	fmt.Fprintf(cli.out, "Git commit (server): %s\n", remoteVersion.Get("GitCommit"))
-	fmt.Fprintf(cli.out, "OS/Arch (server): %s/%s\n", remoteVersion.Get("Os"), remoteVersion.Get("Arch"))
-	return nil
+
+	vd.ServerOK = true
+
+	return
 }

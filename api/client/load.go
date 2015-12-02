@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 
+	Cli "github.com/docker/docker/cli"
 	flag "github.com/docker/docker/pkg/mflag"
 )
 
@@ -13,7 +14,7 @@ import (
 //
 // Usage: docker load [OPTIONS]
 func (cli *DockerCli) CmdLoad(args ...string) error {
-	cmd := cli.Subcmd("load", "", "Load an image from a tar archive on STDIN", true)
+	cmd := Cli.Subcmd("load", nil, Cli.DockerCommands["load"].Description, true)
 	infile := cmd.String([]string{"i", "-input"}, "", "Read from a tar archive file, instead of STDIN")
 	cmd.Require(flag.Exact, 0)
 
@@ -29,7 +30,12 @@ func (cli *DockerCli) CmdLoad(args ...string) error {
 			return err
 		}
 	}
-	if err := cli.stream("POST", "/images/load", input, cli.out, nil); err != nil {
+	sopts := &streamOpts{
+		rawTerminal: true,
+		in:          input,
+		out:         cli.out,
+	}
+	if _, err := cli.stream("POST", "/images/load", sopts); err != nil {
 		return err
 	}
 	return nil

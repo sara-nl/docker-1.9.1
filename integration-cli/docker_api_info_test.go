@@ -2,17 +2,17 @@ package main
 
 import (
 	"net/http"
-	"strings"
-	"testing"
+
+	"github.com/docker/docker/pkg/integration/checker"
+	"github.com/go-check/check"
 )
 
-func TestInfoApi(t *testing.T) {
+func (s *DockerSuite) TestInfoApi(c *check.C) {
 	endpoint := "/info"
 
-	statusCode, body, err := sockRequest("GET", endpoint, nil)
-	if err != nil || statusCode != http.StatusOK {
-		t.Fatalf("Expected %d from info request, got %d", http.StatusOK, statusCode)
-	}
+	status, body, err := sockRequest("GET", endpoint, nil)
+	c.Assert(status, checker.Equals, http.StatusOK)
+	c.Assert(err, checker.IsNil)
 
 	// always shown fields
 	stringsToCheck := []string{
@@ -23,16 +23,15 @@ func TestInfoApi(t *testing.T) {
 		"LoggingDriver",
 		"OperatingSystem",
 		"NCPU",
+		"OSType",
+		"Architecture",
 		"MemTotal",
 		"KernelVersion",
-		"Driver"}
+		"Driver",
+		"ServerVersion"}
 
 	out := string(body)
 	for _, linePrefix := range stringsToCheck {
-		if !strings.Contains(out, linePrefix) {
-			t.Errorf("couldn't find string %v in output", linePrefix)
-		}
+		c.Assert(out, checker.Contains, linePrefix)
 	}
-
-	logDone("container REST API - check GET /info")
 }

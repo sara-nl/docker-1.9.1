@@ -2,23 +2,22 @@ package main
 
 import (
 	"encoding/json"
-	"testing"
+	"net/http"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/autogen/dockerversion"
+	"github.com/docker/docker/dockerversion"
+	"github.com/docker/docker/pkg/integration/checker"
+	"github.com/go-check/check"
 )
 
-func TestGetVersion(t *testing.T) {
-	_, body, err := sockRequest("GET", "/version", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var v types.Version
-	if err := json.Unmarshal(body, &v); err != nil {
-		t.Fatal(err)
-	}
+func (s *DockerSuite) TestGetVersion(c *check.C) {
+	status, body, err := sockRequest("GET", "/version", nil)
+	c.Assert(status, checker.Equals, http.StatusOK)
+	c.Assert(err, checker.IsNil)
 
-	if v.Version != dockerversion.VERSION {
-		t.Fatal("Version mismatch")
-	}
+	var v types.Version
+
+	c.Assert(json.Unmarshal(body, &v), checker.IsNil)
+
+	c.Assert(v.Version, checker.Equals, dockerversion.Version, check.Commentf("Version mismatch"))
 }
