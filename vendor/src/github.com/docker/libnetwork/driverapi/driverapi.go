@@ -60,7 +60,7 @@ type EndpointInfo interface {
 	// if the Interfaces() method returned a non-empty list.
 	// ID field need only have significance within the endpoint so it can be a simple
 	// monotonically increasing number
-	AddInterface(ID int, mac net.HardwareAddr, ipv4 net.IPNet, ipv6 net.IPNet) error
+	AddInterface(ID int, mac net.HardwareAddr, ipv4 []net.IPNet, ipv6 net.IPNet) error
 }
 
 // InterfaceInfo provides a go interface for drivers to retrive
@@ -70,7 +70,7 @@ type InterfaceInfo interface {
 	MacAddress() net.HardwareAddr
 
 	// Address returns the IPv4 address.
-	Address() net.IPNet
+	Address() []net.IPNet
 
 	// AddressIPv6 returns the IPv6 address.
 	AddressIPv6() net.IPNet

@@ -86,6 +86,7 @@ func (m *containerMonitor) ExitOnNext() {
 // unmounts the contatiner's root filesystem
 func (m *containerMonitor) Close() error {
 	// Cleanup networking and mounts
+	logrus.Infof("Closing %s proceeding to cleanup", m.container.Name)
 	m.container.cleanup()
 
 	// FIXME: here is race condition between two RUN instructions in Dockerfile
@@ -150,7 +151,7 @@ func (m *containerMonitor) Start() error {
 
 			logrus.Errorf("Error running container: %s", err)
 		}
-
+		logrus.Infof("Container %s Run finished exitStatus %s", m.container.Name, exitStatus )
 		// here container.Lock is already lost
 		afterRun = true
 

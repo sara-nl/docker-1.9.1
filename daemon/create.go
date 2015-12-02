@@ -51,7 +51,7 @@ func (daemon *Daemon) Create(config *runconfig.Config, hostConfig *runconfig.Hos
 		imgID     string
 		err       error
 	)
-
+	logrus.Infof("Container Labels: %s", config.Labels)
 	if config.Image != "" {
 		img, err = daemon.repositories.LookupImage(config.Image)
 		if err != nil {

@@ -574,6 +574,7 @@ func (container *Container) buildPortMapInfo(n libnetwork.Network, ep libnetwork
 }
 
 func (container *Container) buildEndpointInfo(n libnetwork.Network, ep libnetwork.Endpoint, networkSettings *network.Settings) (*network.Settings, error) {
+	
 	if ep == nil {
 		return nil, fmt.Errorf("invalid endpoint while building port map info")
 	}
@@ -595,8 +596,8 @@ func (container *Container) buildEndpointInfo(n libnetwork.Network, ep libnetwor
 
 	iface := ifaceList[0]
 
-	ones, _ := iface.Address().Mask.Size()
-	networkSettings.IPAddress = iface.Address().IP.String()
+	ones, _ := iface.Address()[0].Mask.Size()
+	networkSettings.IPAddress = iface.Address()[0].IP.String()
 	networkSettings.IPPrefixLen = ones
 
 	if iface.AddressIPv6().IP.To16() != nil {
@@ -612,8 +613,8 @@ func (container *Container) buildEndpointInfo(n libnetwork.Network, ep libnetwor
 	networkSettings.SecondaryIPAddresses = make([]network.Address, 0, len(ifaceList)-1)
 	networkSettings.SecondaryIPv6Addresses = make([]network.Address, 0, len(ifaceList)-1)
 	for _, iface := range ifaceList[1:] {
-		ones, _ := iface.Address().Mask.Size()
-		addr := network.Address{Addr: iface.Address().IP.String(), PrefixLen: ones}
+		ones, _ := iface.Address()[0].Mask.Size()
+		addr := network.Address{Addr: iface.Address()[0].IP.String(), PrefixLen: ones}
 		networkSettings.SecondaryIPAddresses = append(networkSettings.SecondaryIPAddresses, addr)
 
 		if iface.AddressIPv6().IP.To16() != nil {
@@ -703,7 +704,49 @@ func (container *Container) buildCreateEndpointOptions() ([]libnetwork.EndpointO
 		pbList        []types.PortBinding
 		exposeList    []types.TransportPort
 		createOptions []libnetwork.EndpointOption
+		ip4Addr       []net.IPNet
 	)
+
+	if container.hostConfig.NetworkMode.IsRouted() {
+		var ipAddresses string
+		if container.Config.Labels[netlabel.IPv4Addresses] != "" {
+			ipAddresses = container.Config.Labels[netlabel.IPv4Addresses]	
+		} else {
+			ipAddresses = container.Config.Ip4Addresses
+		}
+		if ipAddresses == "" {
+			return nil, fmt.Errorf("Configure Ip Addresses in routed mode using the label %s", netlabel.IPv4Addresses)
+		}
+
+		for _, ipAddress := range strings.Split(ipAddresses, ",") {
+			parsedIp := net.ParseIP(ipAddress)
+			if parsedIp == nil {
+				
+				parsedCidr, _, err := net.ParseCIDR(ipAddress)
+				if err != nil {
+					parsedIp = nil
+				} else {
+					parsedIp = parsedCidr
+				}
+			}
+			ip := parsedIp 
+			if ip == nil {
+				
+				return nil, fmt.Errorf("%s is not a valid IPv4 Address", ipAddress)
+			}	
+			logrus.Debugf("IP Address: %s", ipAddress)
+			ip4Addr = append(ip4Addr, net.IPNet{IP: ip, Mask: net.IPv4Mask(255, 255, 255, 255)})
+		}
+		
+		if len(ip4Addr) == 0 {
+			return nil, fmt.Errorf("No valid IPv4 addresses found in label %s", netlabel.IPv4Addresses)
+		}
+
+		addrOption := options.Generic{
+			netlabel.IPv4Addresses: ip4Addr,
+		}
+		createOptions = append(createOptions, libnetwork.EndpointOptionGeneric(addrOption))
+	}
 
 	if container.Config.ExposedPorts != nil {
 		portSpecs = container.Config.ExposedPorts

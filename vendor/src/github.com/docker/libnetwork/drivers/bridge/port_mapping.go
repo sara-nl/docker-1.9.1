@@ -24,7 +24,7 @@ func (n *bridgeNetwork) allocatePorts(epConfig *endpointConfiguration, ep *bridg
 		defHostIP = reqDefBindIP
 	}
 
-	return n.allocatePortsInternal(epConfig.PortBindings, ep.addr.IP, defHostIP, ulPxyEnabled)
+	return n.allocatePortsInternal(epConfig.PortBindings, ep.addr[0].IP, defHostIP, ulPxyEnabled)
 }
 
 func (n *bridgeNetwork) allocatePortsInternal(bindings []types.PortBinding, containerIP, defHostIP net.IP, ulPxyEnabled bool) ([]types.PortBinding, error) {

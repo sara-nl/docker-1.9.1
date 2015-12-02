@@ -34,7 +34,7 @@ type InterfaceInfo interface {
 	MacAddress() net.HardwareAddr
 
 	// Address returns the IPv4 address assigned to the endpoint.
-	Address() net.IPNet
+	Address() []net.IPNet
 
 	// AddressIPv6 returns the IPv6 address assigned to the endpoint.
 	AddressIPv6() net.IPNet
@@ -51,7 +51,7 @@ type ContainerInfo interface {
 type endpointInterface struct {
 	id        int
 	mac       net.HardwareAddr
-	addr      net.IPNet
+	addr      []net.IPNet
 	addrv6    net.IPNet
 	srcName   string
 	dstPrefix string
@@ -178,13 +178,16 @@ func (ep *endpoint) Interfaces() []driverapi.InterfaceInfo {
 	return iList
 }
 
-func (ep *endpoint) AddInterface(id int, mac net.HardwareAddr, ipv4 net.IPNet, ipv6 net.IPNet) error {
+func (ep *endpoint) AddInterface(id int, mac net.HardwareAddr, ipv4 []net.IPNet, ipv6 net.IPNet) error {
 	ep.Lock()
 	defer ep.Unlock()
-
+	addrs := make([]net.IPNet, len(ipv4))
+	for i, e := range ipv4 {
+		addrs[i] = *types.GetIPNetCopy(&e)
+	}
 	iface := &endpointInterface{
 		id:     id,
-		addr:   *types.GetIPNetCopy(&ipv4),
+		addr:   addrs,
 		addrv6: *types.GetIPNetCopy(&ipv6),
 	}
 	iface.mac = types.GetMacCopy(mac)
@@ -201,8 +204,12 @@ func (epi *endpointInterface) MacAddress() net.HardwareAddr {
 	return types.GetMacCopy(epi.mac)
 }
 
-func (epi *endpointInterface) Address() net.IPNet {
-	return (*types.GetIPNetCopy(&epi.addr))
+func (i *endpointInterface) Address() []net.IPNet {
+	to := make([]net.IPNet, len(i.addr))
+	for j, ip := range i.addr {
+		to[j] = *types.GetIPNetCopy(&ip)
+	}
+	return to 
 }
 
 func (epi *endpointInterface) AddressIPv6() net.IPNet {

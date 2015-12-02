@@ -39,6 +39,7 @@ type TagStore struct {
 	registryService *registry.Service
 	eventsService   *events.Events
 	trustService    *trust.TrustStore
+	pullLock		sync.Mutex
 }
 
 type Repository map[string]string

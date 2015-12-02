@@ -182,7 +182,7 @@ func createNetworkNamespace(path string, osCreate bool) error {
 	if err := createNamespaceFile(path); err != nil {
 		return err
 	}
-
+	log.Debugf("Created Network Namespace: %s", path)
 	cmd := &exec.Cmd{
 		Path:   reexec.Self(),
 		Args:   append([]string{"netns-create"}, path),

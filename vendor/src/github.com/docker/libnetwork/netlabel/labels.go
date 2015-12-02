@@ -23,6 +23,9 @@ const (
 
 	//EnableIPv6 constant represents enabling IPV6 at network level
 	EnableIPv6 = Prefix + ".enable_ipv6"
+	
+	// Ip4Addresses constant represent IPv4 Addresses of a Container
+	IPv4Addresses = "io.docker.network.endpoint.ip4addresses"
 
 	// KVProvider constant represents the KV provider backend
 	KVProvider = DriverPrefix + ".kv_provider"

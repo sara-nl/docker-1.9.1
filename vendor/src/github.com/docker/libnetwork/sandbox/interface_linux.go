@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/libnetwork/types"
 	"github.com/vishvananda/netlink"
+	"github.com/docker/libnetwork/types"
 )
 
 // IfaceOption is a function option type to set interface options
@@ -19,7 +20,7 @@ type nwIface struct {
 	dstName     string
 	master      string
 	dstMaster   string
-	address     *net.IPNet
+	address     []*net.IPNet
 	addressIPv6 *net.IPNet
 	routes      []*net.IPNet
 	bridge      bool
@@ -62,11 +63,10 @@ func (i *nwIface) Master() string {
 	return i.master
 }
 
-func (i *nwIface) Address() *net.IPNet {
+func (i *nwIface) Address() []*net.IPNet {
 	i.Lock()
 	defer i.Unlock()
-
-	return types.GetIPNetCopy(i.address)
+	return types.GetIPNetCopies(i.address)
 }
 
 func (i *nwIface) AddressIPv6() *net.IPNet {

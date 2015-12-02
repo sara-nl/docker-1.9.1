@@ -130,7 +130,7 @@ type Interface interface {
 	DstName() string
 
 	// IPv4 address for the interface.
-	Address() *net.IPNet
+	Address() []*net.IPNet
 
 	// IPv6 address for the interface.
 	AddressIPv6() *net.IPNet

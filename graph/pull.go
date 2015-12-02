@@ -49,7 +49,6 @@ func NewPuller(s *TagStore, endpoint registry.APIEndpoint, repoInfo *registry.Re
 
 func (s *TagStore) Pull(image string, tag string, imagePullConfig *ImagePullConfig) error {
 	var sf = streamformatter.NewJSONStreamFormatter()
-
 	// Resolve the Repository name from fqn to RepositoryInfo
 	repoInfo, err := s.registryService.ResolveRepository(image)
 	if err != nil {

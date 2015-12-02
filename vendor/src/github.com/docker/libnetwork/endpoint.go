@@ -18,6 +18,7 @@ import (
 	"github.com/docker/libnetwork/resolvconf"
 	"github.com/docker/libnetwork/sandbox"
 	"github.com/docker/libnetwork/types"
+	"net"
 )
 
 // Endpoint represents a logical connection between a network and a sandbox.
@@ -386,7 +387,7 @@ func (ep *endpoint) Join(containerID string, options ...EndpointOption) error {
 	container := ep.container
 	network := ep.network
 	epid := ep.id
-
+	logrus.Debugf("ep.iFaces %s", ifaces)
 	ep.Unlock()
 	defer func() {
 		if err != nil {
@@ -446,6 +447,11 @@ func (ep *endpoint) Join(containerID string, options ...EndpointOption) error {
 			ctrlr.sandboxRm(sboxKey, ep)
 		}
 	}()
+	//for _, i := range ifaces {
+	//	addresses := make([]*net.IPNet, len(i.addr))
+	//	for j, _ := range i.addr {
+	//		addresses[j] = &i.addr[j]
+	//	}
 
 	if err := network.ctrlr.updateEndpointToStore(ep); err != nil {
 		return err
@@ -473,7 +479,7 @@ func (ep *endpoint) Leave(containerID string, options ...EndpointOption) error {
 
 	ep.joinLeaveStart()
 	defer ep.joinLeaveEnd()
-
+	logrus.Debugf("Endpoint Leave %s", containerID)
 	ep.processOptions(options...)
 
 	ep.Lock()
@@ -693,7 +699,7 @@ func (ep *endpoint) buildHostsFiles() error {
 
 	IP := ""
 	if len(ifaces) != 0 && ifaces[0] != nil {
-		IP = ifaces[0].addr.IP.String()
+		IP = ifaces[0].addr[0].IP.String()
 	}
 
 	return etchosts.Build(container.config.hostsPath, IP, container.config.hostName,

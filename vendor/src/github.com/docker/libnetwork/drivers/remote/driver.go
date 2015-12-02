@@ -3,6 +3,7 @@ package remote
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/pkg/plugins"
@@ -74,9 +75,14 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 	for i, iface := range epInfo.Interfaces() {
 		addr4 := iface.Address()
 		addr6 := iface.AddressIPv6()
+		addresses4 := make([]string, len(addr4))
+		for i, addr := range addr4 {
+			addresses4[i] = addr.String()
+		}
+		strAddr := strings.Join(addresses4, ",")
 		reqIfaces[i] = &endpointInterface{
 			ID:          iface.ID(),
-			Address:     addr4.String(),
+			Address:     strAddr,
 			AddressIPv6: addr6.String(),
 			MacAddress:  iface.MacAddress().String(),
 		}
@@ -109,7 +115,7 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 		if iface.AddressIPv6 != nil {
 			addr6 = *(iface.AddressIPv6)
 		}
-		if err := epInfo.AddInterface(iface.ID, iface.MacAddress, addr4, addr6); err != nil {
+		if err := epInfo.AddInterface(iface.ID, iface.MacAddress, []net.IPNet{addr4}, addr6); err != nil {
 			return errorWithRollback(fmt.Sprintf("failed to AddInterface %v: %s", iface, err), d.DeleteEndpoint(nid, eid))
 		}
 	}

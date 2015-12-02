@@ -1006,13 +1006,13 @@ func (d *driver) CreateEndpoint(nid, eid types.UUID, epInfo driverapi.EndpointIn
 
 	// Create the sandbox side pipe interface
 	endpoint.srcName = containerIfName
-	endpoint.addr = ipv4Addr
+	endpoint.addr = []*net.IPNet{ipv4Addr}
 
 	if config.EnableIPv6 {
 		endpoint.addrv6 = ipv6Addr
 	}
 
-	err = epInfo.AddInterface(ifaceID, endpoint.macAddress, *ipv4Addr, *ipv6Addr)
+	err = epInfo.AddInterface(ifaceID, endpoint.macAddress, []net.IPNet{*ipv4Addr}, *ipv6Addr)
 	if err != nil {
 		return err
 	}
@@ -1079,7 +1079,7 @@ func (d *driver) DeleteEndpoint(nid, eid types.UUID) error {
 	n.releasePorts(ep)
 
 	// Release the v4 address allocated to this endpoint's sandbox interface
-	err = ipAllocator.ReleaseIP(n.bridge.bridgeIPv4, ep.addr.IP)
+	err = ipAllocator.ReleaseIP(n.bridge.bridgeIPv4, ep.addr[0].IP)
 	if err != nil {
 		return err
 	}
@@ -1264,7 +1264,7 @@ func (d *driver) link(network *bridgeNetwork, endpoint *bridgeEndpoint, options 
 			}
 
 			l := newLink(parentEndpoint.addr.IP.String(),
-				endpoint.addr.IP.String(),
+				endpoint.addr[0].IP.String(),
 				endpoint.config.ExposedPorts, network.config.BridgeName)
 			if enable {
 				err = l.Enable()
@@ -1297,7 +1297,7 @@ func (d *driver) link(network *bridgeNetwork, endpoint *bridgeEndpoint, options 
 		}
 
 		l := newLink(endpoint.addr.IP.String(),
-			childEndpoint.addr.IP.String(),
+			childEndpoint.addr[0].IP.String(),
 			childEndpoint.config.ExposedPorts, network.config.BridgeName)
 		if enable {
 			err = l.Enable()
