@@ -65,6 +65,15 @@ func (d *Driver) createContainer(c *execdriver.Command, hooks execdriver.Hooks) 
 		if err := d.setCapabilities(container, c); err != nil {
 			return nil, err
 		}
+		hostDevices, err := devices.HostDevices()
+		if err != nil {
+			return nil, err
+		}
+		for _, dev := range hostDevices {
+			if strings.HasPrefix(dev.Path, "/dev/rbd") {
+				container.Cgroups.AllowedDevices = append(container.Cgroups.AllowedDevices, dev)
+			}
+		}
 	}
 	// add CAP_ prefix to all caps for new libcontainer update to match
 	// the spec format.
@@ -287,18 +296,24 @@ func (d *Driver) setupMounts(container *configs.Config, c *execdriver.Command) e
 	container.Mounts = defaultMounts
 
 	for _, m := range c.Mounts {
-		flags := syscall.MS_BIND | syscall.MS_REC
+		flags := 0
 		if !m.Writable {
 			flags |= syscall.MS_RDONLY
 		}
 		if m.Slave {
 			flags |= syscall.MS_SLAVE
 		}
+		device := "bind"
+		if m.Driver == "ceph" || m.Driver == "nfs" {
+			device = m.Driver
+		} else {
+			flags |= syscall.MS_BIND | syscall.MS_REC
+		}
 
 		container.Mounts = append(container.Mounts, &configs.Mount{
 			Source:      m.Source,
 			Destination: m.Destination,
-			Device:      "bind",
+			Device:      device,
 			Flags:       flags,
 		})
 	}
