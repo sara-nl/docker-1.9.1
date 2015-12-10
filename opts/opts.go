@@ -226,10 +226,12 @@ func ValidateDevice(val string) (string, error) {
 
 // ValidatePath validates a path for volumes
 // It will make sure 'val' is in the form:
-//    [host-dir:]container-path[:rw|ro]
+//    [host-dir:]container-path[:typeAndMode]
 // It also validates the mount mode.
+// typeAndMode is the mount mode and an optional volume type,
+// joined by a ","
 func ValidatePath(val string) (string, error) {
-	return validatePath(val, volume.ValidMountMode)
+	return validatePath(val, volume.ValidMountTypeAndMode)
 }
 
 func validatePath(val string, validator func(string) bool) (string, error) {
