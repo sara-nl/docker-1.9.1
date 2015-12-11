@@ -128,13 +128,12 @@ func parseMountMode(mode string) (bool, string, string, error) {
 	var labelItems []string
 	driver := ""
 	for _, item := range strings.Split(mode, ",") {
-		lowerItem := strings.ToLower(item)
-		switch lowerItem {
+		switch item {
 		case "rw", "ro":
 			if rwSpecified {
 				return false, "", "", fmt.Errorf("invalid mode for volumes: %s", mode)
 			}
-			rw = lowerItem == "rw"
+			rw = item == "rw"
 			rwSpecified = true
 			labelItems = append(labelItems, item)
 		case "z":
@@ -147,7 +146,7 @@ func parseMountMode(mode string) (bool, string, string, error) {
 			if driver != "" {
 				return false, "", "", fmt.Errorf("invalid mode for volumes: %s", mode)
 			}
-			driver = lowerItem
+			driver = item
 		}
 	}
 	return rw, strings.Join(labelItems, ","), driver, nil

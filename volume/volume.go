@@ -73,12 +73,19 @@ func ReadWrite(mode string) bool {
 // ValidMountTypeAndMode checks if the type and mode is valid or not.
 // Valid type and mode is a join between a type (ceph, nfs) and a mode.
 func ValidMountTypeAndMode(typeAndMode string) bool {
-        for _, item := range strings.Split(typeAndMode, ",") {
-                lowerItem := strings.ToLower(item)
-                // Must be either a device mode or a device type
-                if !ValidMountMode(item) && !mountTypes[lowerItem] {
-                        return false
-                }
-        }
-        return true
+	var types = 0
+	var modes = 0
+	var z = 0
+	for _, item := range strings.Split(typeAndMode, ",") {
+		if item == "rw" || item == "ro" {
+			modes++
+		} else if mountTypes[item] {
+			types++
+		} else if strings.ToLower(item) == "z" {
+			z++
+		} else {
+			return false
+		}
+	}
+	return modes <= 1 && types <= 1 && z <= 1
 }
