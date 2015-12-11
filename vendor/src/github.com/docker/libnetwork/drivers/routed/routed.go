@@ -13,13 +13,13 @@ import (
 	"github.com/docker/libnetwork/types"
 	"github.com/docker/libnetwork/netlabel"
 	"github.com/docker/libnetwork/netutils"
-	"github.com/docker/libnetwork/options"
 	"github.com/vishvananda/netlink"
 )
 
 const (
 	networkType = "routed"
 	ifaceID     = 1
+	defaultMtu	= 9000
 	VethPrefix  = "vethr" 
 )
 
@@ -31,7 +31,6 @@ type routedNetwork struct {
 
 type routedEndpoint struct {
 	id              string
-	//iface         *sandbox.Interface
 	srcName         string
 	dstName         string
 	macAddress      net.HardwareAddr
@@ -41,9 +40,7 @@ type routedEndpoint struct {
 
 // configuration info for the "routed" driver.
 type configuration struct {
-	EnableIPForwarding  bool
-	EnableIPTables      bool
-	EnableUserlandProxy bool
+		mtu			int
 }
 
 type driver struct {
@@ -51,7 +48,6 @@ type driver struct {
 	network     *routedNetwork
 	networks    map[string]*routedNetwork
 	store       datastore.DataStore
-	mtu			int
 	sync.Mutex
 }
 
@@ -64,7 +60,7 @@ func Init(dc driverapi.DriverCallback, config map[string]interface {}) error {
 		logrus.Errorf("Can't get list of net devices: %s", err)
 		return err
 	}
-
+	// clean up old interfaces
 	for _, lnk := range links {
 		if strings.HasPrefix(lnk.Attrs().Name, VethPrefix) {
 			if err := netlink.LinkDel(lnk); err != nil {
@@ -76,6 +72,7 @@ func Init(dc driverapi.DriverCallback, config map[string]interface {}) error {
 	}
 	
 	d := newDriver()
+	d.config.mtu = defaultMtu
 	c := driverapi.Capability{
 		DataScope: datastore.LocalScope,
 	}
@@ -87,14 +84,6 @@ func newDriver() *driver {
 	return &driver{networks: map[string]*routedNetwork{}, config: &configuration{}}
 }
 
-func (d *driver) Config(option map[string]interface{}) error {
-	m := option[netlabel.GenericData]
-	ops := m.(options.Generic)
-	mtu := ops["Mtu"].(int)
-	logrus.Infof("Mtu %d", mtu)
-	d.mtu = mtu
-	return nil
-}
 
 func (d *driver) CreateNetwork(id string, option map[string]interface{}, ipV4Data, ipV6Data []driverapi.IPAMData) error {
 	logrus.Warnf("CreateNetwork: id=%s - option=%s", id, option)
@@ -113,7 +102,6 @@ func (d *driver) CreateEndpoint(nid, eid string, ifInfo driverapi.InterfaceInfo,
 	logrus.Debugf("nid=%s", nid)
 	logrus.Debugf("eid=%s", eid)
 	logrus.Debugf("epOptions= %s", epOptions)
-	logrus.Debugf("InterfaceInfo= %s", ifInfo)
 	
 	logrus.Debugf("IPV4: %s", epOptions[netlabel.IPv4Addresses])
 	if epOptions[netlabel.IPv4Addresses] == nil {
@@ -176,12 +164,12 @@ func (d *driver) CreateEndpoint(nid, eid string, ifInfo driverapi.InterfaceInfo,
 
 	ipv4Addresses := epOptions[netlabel.IPv4Addresses].([]net.IPNet)
 	
-	if d.mtu != 0 {
-		err = netlink.LinkSetMTU(hostIface, d.mtu)
+	if d.config.mtu != 0 {
+		err = netlink.LinkSetMTU(hostIface, d.config.mtu)
 		if err != nil {
 			return err
 		}
-		err = netlink.LinkSetMTU(sandboxIface, d.mtu)
+		err = netlink.LinkSetMTU(sandboxIface, d.config.mtu)
 		if err != nil {
 			return err
 		}
@@ -229,7 +217,7 @@ func (d *driver) CreateEndpoint(nid, eid string, ifInfo driverapi.InterfaceInfo,
 	endpoint.srcName = containerIfaceName
 	endpoint.dstName = "eth" 
 	endpoint.macAddress = ifInfo.MacAddress()
-	endpoint.ipv4Addresses = addresses // ifInfo.Address()??????
+	endpoint.ipv4Addresses = addresses 
 	endpoint.hostInterface = hostIfaceName
 	return nil
 }
@@ -283,7 +271,6 @@ func (d *driver) Join(nid, eid string, sboxKey string, jinfo driverapi.JoinInfo,
 
 	logrus.Debugf("Join Network: %s - %s", endpoint.srcName, endpoint.dstName)
 	if endpoint == nil {
-		logrus.Errorf("Endpoint not found %s", eid)
 		return errors.New("Endpoint not found")
 	}
 	
