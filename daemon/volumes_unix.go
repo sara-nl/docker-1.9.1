@@ -136,7 +136,7 @@ func parseMountMode(mode string) (bool, string, string, error) {
 			rw = item == "rw"
 			rwSpecified = true
 			labelItems = append(labelItems, item)
-		case "z":
+		case "z", "Z":
 			if sharingSpecified {
 				return false, "", "", fmt.Errorf("invalid mode for volumes: %s", mode)
 			}
