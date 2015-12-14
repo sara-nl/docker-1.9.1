@@ -210,7 +210,7 @@ func (d *driver) CreateEndpoint(nid, eid string, ifInfo driverapi.InterfaceInfo,
 		return fmt.Errorf("could not set IP %s %v", ips[0])
 	}
 	// Set extra IP Addresses
-	if err := ifInfo.SetIPAddresses(ips[1:]); err != nil {
+	if err := ifInfo.SetExtraIPAddresses(ips[1:]); err != nil {
 		return fmt.Errorf("could not set IP %s %v", ips[1:], err)
 	}
 	

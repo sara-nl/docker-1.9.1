@@ -240,7 +240,7 @@ func (epi *endpointInterface) SetIPAddress(address *net.IPNet) error {
 	return setAddress(&epi.addr, address)
 }
 
-func (epi *endpointInterface) SetIPAddresses(addresses []*net.IPNet) error {
+func (epi *endpointInterface) SetExtraIPAddresses(addresses []*net.IPNet) error {
 	logrus.Infof("Setting Extra IP Addresses %s %s", epi.srcName, addresses)
 	a := make([]*net.IPNet, len(addresses))
 	for j, ip := range addresses {

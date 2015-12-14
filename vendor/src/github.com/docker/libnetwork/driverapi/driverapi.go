@@ -59,7 +59,7 @@ type InterfaceInfo interface {
 	SetIPAddress(ip *net.IPNet) error
 
 	// Assign extra IP addresses
-	SetIPAddresses(ips []*net.IPNet) error
+	SetExtraIPAddresses(ips []*net.IPNet) error
 	
 	// MacAddress returns the MAC address.
 	MacAddress() net.HardwareAddr
