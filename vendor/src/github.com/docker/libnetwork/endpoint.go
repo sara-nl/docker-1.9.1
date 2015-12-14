@@ -817,7 +817,7 @@ func (ep *endpoint) assignAddressVersion(ipVer int, ipam ipamapi.Ipam) error {
 
 func (ep *endpoint) releaseAddress() {
 	n := ep.getNetwork()
-	if n.Type() == "host" || n.Type() == "null" || n.Type() == "routed"{
+	if n.Type() == "host" || n.Type() == "null" || n.Type() == "routed" {
 		return
 	}
 
