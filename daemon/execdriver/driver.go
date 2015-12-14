@@ -172,6 +172,7 @@ type Mount struct {
 	Writable    bool   `json:"writable"`
 	Private     bool   `json:"private"`
 	Slave       bool   `json:"slave"`
+	Driver      string `json:"driver"`
 }
 
 // User contains the uid and gid representing a Unix user

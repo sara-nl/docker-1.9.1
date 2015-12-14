@@ -3,6 +3,7 @@
 package daemon
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -47,9 +48,10 @@ func (container *Container) setupMounts() ([]execdriver.Mount, error) {
 		}
 		if !container.trySetNetworkMount(m.Destination, path) {
 			mounts = append(mounts, execdriver.Mount{
-				Source:      path,
+				Source:      path, // Note that for Ceph volumes, this will be the mapped device (e.g. /dev/rbd0), and for NFS shares, it will be the share URI (e.g. 1.2.3.4://foo)
 				Destination: m.Destination,
 				Writable:    m.RW,
+				Driver:	     m.Driver,
 			})
 		}
 	}
@@ -81,12 +83,11 @@ func parseBindMount(spec, volumeDriver string) (*mountPoint, error) {
 	case 3:
 		bind.Destination = arr[1]
 		mode := arr[2]
-		if !volume.ValidMountMode(mode) {
+		// Mode field is used by SELinux to decide whether to apply label
+		var err error
+		if bind.RW, bind.Mode, bind.Driver, err = parseMountMode(mode); err != nil {
 			return nil, derr.ErrorCodeVolumeInvalidMode.WithArgs(mode)
 		}
-		bind.RW = volume.ReadWrite(mode)
-		// Mode field is used by SELinux to decide whether to apply label
-		bind.Mode = mode
 	default:
 		return nil, derr.ErrorCodeVolumeInvalid.WithArgs(spec)
 	}
@@ -102,9 +103,14 @@ func parseBindMount(spec, volumeDriver string) (*mountPoint, error) {
 	}
 
 	if len(source) == 0 {
-		bind.Driver = volumeDriver
 		if len(bind.Driver) == 0 {
-			bind.Driver = volume.DefaultDriverName
+			if len(volumeDriver) == 0 {
+				bind.Driver = volume.DefaultDriverName
+			} else {
+				bind.Driver = volumeDriver
+			}
+		} else if bind.Driver == "nfs" {
+			name = strings.Replace(name, "//", "://", 1)
 		}
 	} else {
 		bind.Source = filepath.Clean(source)
@@ -113,6 +119,37 @@ func parseBindMount(spec, volumeDriver string) (*mountPoint, error) {
 	bind.Name = name
 	bind.Destination = filepath.Clean(bind.Destination)
 	return bind, nil
+}
+
+func parseMountMode(mode string) (bool, string, string, error) {
+	rw := false
+	rwSpecified := false
+	sharingSpecified := false
+	var labelItems []string
+	driver := ""
+	for _, item := range strings.Split(mode, ",") {
+		switch item {
+		case "rw", "ro":
+			if rwSpecified {
+				return false, "", "", fmt.Errorf("invalid mode for volumes: %s", mode)
+			}
+			rw = item == "rw"
+			rwSpecified = true
+			labelItems = append(labelItems, item)
+		case "z", "Z":
+			if sharingSpecified {
+				return false, "", "", fmt.Errorf("invalid mode for volumes: %s", mode)
+			}
+			sharingSpecified = true
+			labelItems = append(labelItems, item)
+		case "ceph", "nfs":
+			if driver != "" {
+				return false, "", "", fmt.Errorf("invalid mode for volumes: %s", mode)
+			}
+			driver = item
+		}
+	}
+	return rw, strings.Join(labelItems, ","), driver, nil
 }
 
 // sortMounts sorts an array of mounts in lexicographic order. This ensure that
