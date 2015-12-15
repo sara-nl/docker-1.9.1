@@ -376,6 +376,11 @@ func (daemon *Daemon) initNetworkController(config *Config) (libnetwork.NetworkC
 		return nil, fmt.Errorf("Error creating default \"host\" network: %v", err)
 	}
 
+	if _, err := controller.NewNetwork("routed", "routed", libnetwork.NetworkOptionPersist(false)); err != nil {
+		return nil, err
+	}
+
+
 	if !config.DisableBridge {
 		// Initialize default driver "bridge"
 		if err := initBridgeDriver(controller, config); err != nil {

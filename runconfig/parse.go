@@ -98,6 +98,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		flSwappiness        = cmd.Int64([]string{"-memory-swappiness"}, -1, "Tuning container memory swappiness (0 to 100)")
 		flNetMode           = cmd.String([]string{"-net"}, "default", "Set the Network for the container")
 		flMacAddress        = cmd.String([]string{"-mac-address"}, "", "Container MAC address (e.g. 92:d0:c6:0a:29:33)")
+		flIp4Addresses      = cmd.String([]string{"-ip-address"}, "", "Container IP4 addresses separated by comma (e.g. 10.4.4.2,10.2.2.2)")
 		flIpcMode           = cmd.String([]string{"-ipc"}, "", "IPC namespace to use")
 		flRestartPolicy     = cmd.String([]string{"-restart"}, "no", "Restart policy to apply when a container exits")
 		flReadonlyRootfs    = cmd.Bool([]string{"-read-only"}, false, "Mount the container's root filesystem as read only")
@@ -337,6 +338,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		Image:           image,
 		Volumes:         flVolumes.GetMap(),
 		MacAddress:      *flMacAddress,
+		Ip4Addresses:    *flIp4Addresses,
 		Entrypoint:      entrypoint,
 		WorkingDir:      *flWorkingDir,
 		Labels:          ConvertKVStringsToMap(labels),
