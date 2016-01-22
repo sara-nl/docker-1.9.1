@@ -9,7 +9,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/volume"
 	"os/exec"
-	//"strconv"
+	"strconv"
 	"strings"
 )
 
@@ -38,46 +38,14 @@ func (r *Root) Create(name string, _ map[string]string) (volume.Volume, error) {
 
 	v, exists := r.volumes[name]
 	if !exists {
-		//TODO: Might want to map with --options rw/ro here, but then we need to sneak in the RW flag somehow
-		//var stdout bytes.Buffer
-		//var stderr bytes.Buffer
-		var mappedDevicePath string
-
-		/*cmd := exec.Command("echo", "rbd", "create", name, "--size", strconv.Itoa(CephImageSizeMB))
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
-		if err := cmd.Run(); err == nil {
-			logrus.Infof("Created Ceph volume %s", name)
-			mappedDevicePath, err = mapCephVolume(name)
-			if err != nil {
-				return nil, err
-			}
-			cmd = exec.Command("echo", "mkfs.ext4", "-m0", mappedDevicePath)
-			logrus.Infof("Creating ext4 filesystem in newly created Ceph volume %s (device %s)", name, mappedDevicePath)
-			if err := cmd.Run(); err != nil {
-				logrus.Errorf("Failed to create ext4 filesystem in newly created Ceph volume %s (device %s) - %s", name, mappedDevicePath, err)
-				return nil, err
-			}
-		} else if strings.Contains(stderr.String(), fmt.Sprintf("rbd image %s already exists", name)) {*/
-			logrus.Infof("Found existing Ceph volume %s", name)
-			mappedDevicePath, err := mapCephVolume(name)
-			if err != nil {
-				return nil, err
-			}
-		/*} else {
-			msg := fmt.Sprintf("Failed to create Ceph volume %s - %s", name, err)
-			logrus.Errorf(msg)
-			return nil, errors.New(msg)
-		}*/
-
 		v = &Volume{
 			driverName:       r.Name(),
 			name:             name,
-			mappedDevicePath: mappedDevicePath,
+			mappedDevicePath: "", // Will be set by Mount()
 		}
 		r.volumes[name] = v
 	}
-	v.use()
+
 	return v, nil
 }
 
@@ -97,7 +65,6 @@ func mapCephVolume(name string) (string, error) {
 		logrus.Errorf(msg)
 		return "", errors.New(msg)
 	}
-
 }
 
 func (r *Root) Remove(v volume.Volume) error {
@@ -105,17 +72,7 @@ func (r *Root) Remove(v volume.Volume) error {
 	debug.PrintStack()
 	r.m.Lock()
 	defer r.m.Unlock()
-
-	lv, ok := v.(*Volume)
-	if !ok {
-		return errors.New("unknown volume type")
-	}
-	fmt.Printf("=== UsedCount for %s: %d ===\n", v.Name(), lv.usedCount)
-	lv.release()
-	if lv.usedCount == 0 {
-		unmapCephVolume(lv.name, lv.mappedDevicePath)
-		delete(r.volumes, lv.name)
-	}
+	delete(r.volumes, v.Name())
 	return nil
 }
 
@@ -155,9 +112,52 @@ func (v *Volume) Path() string {
 	return ""
 }
 
-func (v *Volume) Mount() (string, error) {
+func (v *Volume) Mount() (mappedDevicePath string, returnedError error) {
 	fmt.Printf("=== Volume.Mount('%s') ===\n", v.Name())
 	debug.PrintStack()
+	v.m.Lock()
+	defer v.m.Unlock()
+
+	defer func() {
+		if returnedError != nil {
+			v.release()
+		}
+	}()
+	if err := v.use(); err != nil {
+		return "", err
+	}
+
+	//TODO: Might want to map with --options rw/ro here, but then we need to sneak in the RW flag somehow
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	cmd := exec.Command("echo", "rbd", "create", v.Name(), "--size", strconv.Itoa(CephImageSizeMB))
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err == nil {
+		logrus.Infof("Created Ceph volume %s", v.Name())
+		v.mappedDevicePath, err = mapCephVolume(v.Name())
+		if err != nil {
+			return "", err
+		}
+		cmd = exec.Command("echo", "mkfs.ext4", "-m0", v.mappedDevicePath)
+		logrus.Infof("Creating ext4 filesystem in newly created Ceph volume %s (device %s)", v.Name(), v.mappedDevicePath)
+		if err := cmd.Run(); err != nil {
+			logrus.Errorf("Failed to create ext4 filesystem in newly created Ceph volume %s (device %s) - %s", v.Name(), v.mappedDevicePath, err)
+			return "", err
+		}
+	} else if strings.Contains(stderr.String(), fmt.Sprintf("rbd image %s already exists", v.Name())) {
+		logrus.Infof("Found existing Ceph volume %s", v.Name())
+		v.mappedDevicePath, err = mapCephVolume(v.Name())
+		if err != nil {
+			return "", err
+		}
+	} else {
+		msg := fmt.Sprintf("Failed to create Ceph volume %s - %s", v.Name(), err)
+		logrus.Errorf(msg)
+		return "", errors.New(msg)
+	}
+
 	// The return value from this method will be passed to the container
 	return v.mappedDevicePath, nil
 }
@@ -165,17 +165,42 @@ func (v *Volume) Mount() (string, error) {
 func (v *Volume) Unmount() error {
 	fmt.Printf("=== Volume.Unmount('%s') ===\n", v.Name())
 	debug.PrintStack()
+	v.m.Lock()
+	defer v.m.Unlock()
+
+	fmt.Printf("=== usedCount for %s: %d ===\n", v.Name(), v.usedCount)
+	if err := v.release(); err != nil {
+		return err
+	}
+	if v.usedCount == 0 { // Somewhat pointless, since this will always be the case
+		unmapCephVolume(v.name, v.mappedDevicePath)
+	}
+
 	return nil
 }
 
-func (v *Volume) use() {
+func (v *Volume) use() error {
 	v.m.Lock()
+	defer v.m.Unlock()
+	if v.usedCount > 0 {
+		msg := fmt.Sprintf("Ceph volume %s is being attempted to be used multiple times in this Docker daemon", v.Name())
+		logrus.Errorf(msg)
+		return errors.New(msg)
+	}
 	v.usedCount++
-	v.m.Unlock()
+	fmt.Printf("=== use() of %s -> %d", v.Name(), v.usedCount)
+	return nil
 }
 
-func (v *Volume) release() {
+func (v *Volume) release() error {
 	v.m.Lock()
+	defer v.m.Unlock()
+	if v.usedCount == 0 { // Shouldn't happen as long as Docker calls Mount()/Unmount() properly
+		msg := fmt.Sprintf("Ceph volume %s is being released more times than it has been used", v.Name())
+		logrus.Errorf(msg)
+		return errors.New(msg)
+	}
 	v.usedCount--
-	v.m.Unlock()
+	fmt.Printf("=== release() of %s -> %d", v.Name(), v.usedCount)
+	return nil
 }
