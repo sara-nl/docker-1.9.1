@@ -3,10 +3,11 @@ package store
 import (
 	"errors"
 	"sync"
-
+	"runtime/debug"
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/volume"
 	"github.com/docker/docker/volume/drivers"
+	"fmt"
 )
 
 var (
@@ -45,6 +46,8 @@ func (s *VolumeStore) AddAll(vols []volume.Volume) {
 
 // Create tries to find an existing volume with the given name or create a new one from the passed in driver
 func (s *VolumeStore) Create(name, driverName string, opts map[string]string) (volume.Volume, error) {
+	fmt.Printf("=== VolumeStore.Create('%s', '%s') ===\n", name, driverName)
+	debug.PrintStack()
 	s.mu.Lock()
 	if vc, exists := s.vols[name]; exists {
 		v := vc.Volume
@@ -84,6 +87,8 @@ func (s *VolumeStore) Get(name string) (volume.Volume, error) {
 
 // Remove removes the requested volume. A volume is not removed if the usage count is > 0
 func (s *VolumeStore) Remove(v volume.Volume) error {
+	fmt.Printf("=== VolumeStore.Remove('%s') ===\n", v.Name())
+	debug.PrintStack()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	name := v.Name()
@@ -110,6 +115,8 @@ func (s *VolumeStore) Remove(v volume.Volume) error {
 
 // Increment increments the usage count of the passed in volume by 1
 func (s *VolumeStore) Increment(v volume.Volume) {
+	fmt.Printf("=== VolumeStore.Increment('%s') ===\n", v.Name())
+	debug.PrintStack()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	logrus.Debugf("Incrementing volume reference: driver %s, name %s", v.DriverName(), v.Name())
@@ -124,6 +131,8 @@ func (s *VolumeStore) Increment(v volume.Volume) {
 
 // Decrement decrements the usage count of the passed in volume by 1
 func (s *VolumeStore) Decrement(v volume.Volume) {
+	fmt.Printf("=== VolumeStore.Decrement('%s') ===\n", v.Name())
+	debug.PrintStack()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	logrus.Debugf("Decrementing volume reference: driver %s, name %s", v.DriverName(), v.Name())

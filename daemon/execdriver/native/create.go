@@ -70,7 +70,7 @@ func (d *Driver) createContainer(c *execdriver.Command, hooks execdriver.Hooks) 
 			return nil, err
 		}
 		for _, dev := range hostDevices {
-			if strings.HasPrefix(dev.Path, "/dev/rbd") {
+			if strings.HasPrefix(dev.Path, "/dev/rbd") || strings.HasPrefix(dev.Path, "/dev/loop") {
 				container.Cgroups.AllowedDevices = append(container.Cgroups.AllowedDevices, dev)
 			}
 		}
