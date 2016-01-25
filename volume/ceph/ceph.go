@@ -180,8 +180,7 @@ func (v *Volume) Unmount() error {
 }
 
 func (v *Volume) use() error {
-	v.m.Lock()
-	defer v.m.Unlock()
+	// Note that the call to use() is assumed to be contained in a v.m.Lock()/Unlock()
 	if v.usedCount > 0 {
 		msg := fmt.Sprintf("Ceph volume %s is being attempted to be used multiple times in this Docker daemon", v.Name())
 		logrus.Errorf(msg)
@@ -193,9 +192,8 @@ func (v *Volume) use() error {
 }
 
 func (v *Volume) release() error {
-	v.m.Lock()
-	defer v.m.Unlock()
-	if v.usedCount == 0 { // Shouldn't happen as long as Docker calls Mount()/Unmount() properly
+	// Note that the call to release() is assumed to be contained in a v.m.Lock()/Unlock()
+	if v.usedCount == 0 { // Shouldn't happen as long as Docker calls Mount()/Unmount() the way we think, but we've misunderstood the call sequence before
 		msg := fmt.Sprintf("Ceph volume %s is being released more times than it has been used", v.Name())
 		logrus.Errorf(msg)
 		return errors.New(msg)
