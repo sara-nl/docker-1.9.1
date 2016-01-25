@@ -118,11 +118,7 @@ func (v *Volume) Mount() (mappedDevicePath string, returnedError error) {
 	v.m.Lock()
 	defer v.m.Unlock()
 
-	defer func() {
-		if returnedError != nil {
-			v.release()
-		}
-	}()
+	// Note that if Mount() returns an error, Docker will still call Unmount(), so there is no need to call release() if anything fails
 	if err := v.use(); err != nil {
 		return "", err
 	}
@@ -172,7 +168,7 @@ func (v *Volume) Unmount() error {
 	if err := v.release(); err != nil {
 		return err
 	}
-	if v.usedCount == 0 { // Somewhat pointless, since this will always be the case
+	if v.usedCount == 0 { // Somewhat pointless, since this should always be the case, but let's keep it in case we misunderstand Docker's call sequence again
 		unmapCephVolume(v.name, v.mappedDevicePath)
 	}
 
@@ -187,7 +183,7 @@ func (v *Volume) use() error {
 		return errors.New(msg)
 	}
 	v.usedCount++
-	fmt.Printf("=== use() of %s -> %d", v.Name(), v.usedCount)
+	fmt.Printf("=== use() of %s -> %d\n", v.Name(), v.usedCount)
 	return nil
 }
 
@@ -199,6 +195,6 @@ func (v *Volume) release() error {
 		return errors.New(msg)
 	}
 	v.usedCount--
-	fmt.Printf("=== release() of %s -> %d", v.Name(), v.usedCount)
+	fmt.Printf("=== release() of %s -> %d\n", v.Name(), v.usedCount)
 	return nil
 }
