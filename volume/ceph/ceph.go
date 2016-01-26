@@ -57,7 +57,7 @@ func mapCephVolume(name string) (string, error) {
 	cmd.Stderr = &stderr
 	var mappedDevicePath string
 	if err := cmd.Run(); err == nil {
-		mappedDevicePath = "/dev/loop0"// strings.TrimRight(stdout.String(), "\n")
+		mappedDevicePath = strings.TrimRight(stdout.String(), "\n")
 		logrus.Infof("Succeeded in mapping Ceph volume %s to %s", name, mappedDevicePath)
 		return mappedDevicePath, nil
 	} else {
@@ -123,7 +123,7 @@ func (v *Volume) Mount() (mappedDevicePath string, returnedError error) {
 		return "", err
 	}
 
-	//TODO: Might want to map with --options rw/ro here, but then we need to sneak in the RW flag somehow
+	// TODO: Might want to map with --options rw/ro here, but then we need to sneak in the RW flag somehow
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 
