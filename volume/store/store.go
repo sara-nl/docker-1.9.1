@@ -124,9 +124,11 @@ func (s *VolumeStore) Increment(v volume.Volume) {
 	vc, exists := s.vols[v.Name()]
 	if !exists {
 		s.vols[v.Name()] = &volumeCounter{v, 1}
+		logrus.Debugf("Incrementing: new (0)")
 		return
 	}
 	vc.count++
+	logrus.Debugf("Incrementing: %d", vc.count)
 }
 
 // Decrement decrements the usage count of the passed in volume by 1
@@ -139,12 +141,15 @@ func (s *VolumeStore) Decrement(v volume.Volume) {
 
 	vc, exists := s.vols[v.Name()]
 	if !exists {
+		logrus.Debugf("Decrementing: Volume doesn't exist")
 		return
 	}
 	if vc.count == 0 {
+		logrus.Debugf("Decrementing: already 0")
 		return
 	}
 	vc.count--
+	logrus.Debugf("Decrementing: %d", vc.count)
 }
 
 // Count returns the usage count of the passed in volume
