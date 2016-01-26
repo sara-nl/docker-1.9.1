@@ -52,7 +52,7 @@ func (r *Root) Create(name string, _ map[string]string) (volume.Volume, error) {
 func mapCephVolume(name string) (string, error) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	cmd := exec.Command("echo", "rbd", "map", name)
+	cmd := exec.Command("rbd", "map", name)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	var mappedDevicePath string
@@ -77,7 +77,7 @@ func (r *Root) Remove(v volume.Volume) error {
 }
 
 func unmapCephVolume(name, mappedDevicePath string) error {
-	cmd := exec.Command("echo", "rbd", "unmap", mappedDevicePath)
+	cmd := exec.Command("rbd", "unmap", mappedDevicePath)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	err := cmd.Run()
@@ -127,7 +127,7 @@ func (v *Volume) Mount() (mappedDevicePath string, returnedError error) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 
-	cmd := exec.Command("echo", "rbd", "create", v.Name(), "--size", strconv.Itoa(CephImageSizeMB))
+	cmd := exec.Command("rbd", "create", v.Name(), "--size", strconv.Itoa(CephImageSizeMB))
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err == nil {
@@ -136,7 +136,7 @@ func (v *Volume) Mount() (mappedDevicePath string, returnedError error) {
 		if err != nil {
 			return "", err
 		}
-		cmd = exec.Command("echo", "mkfs.ext4", "-m0", v.mappedDevicePath)
+		cmd = exec.Command("mkfs.ext4", "-m0", v.mappedDevicePath)
 		logrus.Infof("Creating ext4 filesystem in newly created Ceph volume %s (device %s)", v.Name(), v.mappedDevicePath)
 		if err := cmd.Run(); err != nil {
 			logrus.Errorf("Failed to create ext4 filesystem in newly created Ceph volume %s (device %s) - %s", v.Name(), v.mappedDevicePath, err)
