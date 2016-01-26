@@ -3,7 +3,7 @@ package cephvolumedriver
 import (
 	"errors"
 	"sync"
-	"runtime/debug"
+
 	"bytes"
 	"fmt"
 	"github.com/Sirupsen/logrus"
@@ -31,8 +31,6 @@ func (r *Root) Name() string {
 }
 
 func (r *Root) Create(name string, _ map[string]string) (volume.Volume, error) {
-	fmt.Printf("=== Root.Create('%s') ===\n", name)
-	debug.PrintStack()
 	r.m.Lock()
 	defer r.m.Unlock()
 
@@ -58,18 +56,16 @@ func mapCephVolume(name string) (string, error) {
 	var mappedDevicePath string
 	if err := cmd.Run(); err == nil {
 		mappedDevicePath = strings.TrimRight(stdout.String(), "\n")
-		logrus.Infof("Succeeded in mapping Ceph volume %s to %s", name, mappedDevicePath)
+		logrus.Infof("Succeeded in mapping Ceph volume '%s' to %s", name, mappedDevicePath)
 		return mappedDevicePath, nil
 	} else {
-		msg := fmt.Sprintf("Failed to map Ceph volume %s: %s - %s", name, err, strings.TrimRight(stderr.String(), "\n"))
+		msg := fmt.Sprintf("Failed to map Ceph volume '%s': %s - %s", name, err, strings.TrimRight(stderr.String(), "\n"))
 		logrus.Errorf(msg)
 		return "", errors.New(msg)
 	}
 }
 
 func (r *Root) Remove(v volume.Volume) error {
-	fmt.Printf("=== Root.Remove('%s', '%s') ===\n", v.Name(), v.Path())
-	debug.PrintStack()
 	r.m.Lock()
 	defer r.m.Unlock()
 	delete(r.volumes, v.Name())
@@ -82,9 +78,9 @@ func unmapCephVolume(name, mappedDevicePath string) error {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err == nil {
-		logrus.Infof("Succeeded in unmapping Ceph volume %s from %s", name, mappedDevicePath)
+		logrus.Infof("Succeeded in unmapping Ceph volume '%s' from %s", name, mappedDevicePath)
 	} else {
-		logrus.Printf("Failed to unmap Ceph volume %s from %s: %s - %s", name, mappedDevicePath, err, strings.TrimRight(stderr.String(), "\n"))
+		logrus.Errorf("Failed to unmap Ceph volume '%s' from %s: %s - %s", name, mappedDevicePath, err, strings.TrimRight(stderr.String(), "\n"))
 	}
 	return err
 }
@@ -113,8 +109,6 @@ func (v *Volume) Path() string {
 }
 
 func (v *Volume) Mount() (mappedDevicePath string, returnedError error) {
-	fmt.Printf("=== Volume.Mount('%s') ===\n", v.Name())
-	debug.PrintStack()
 	v.m.Lock()
 	defer v.m.Unlock()
 
@@ -131,15 +125,15 @@ func (v *Volume) Mount() (mappedDevicePath string, returnedError error) {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err == nil {
-		logrus.Infof("Created Ceph volume %s", v.Name())
+		logrus.Infof("Created Ceph volume '%s'", v.Name())
 		v.mappedDevicePath, err = mapCephVolume(v.Name())
 		if err != nil {
 			return "", err
 		}
 		cmd = exec.Command("mkfs.ext4", "-m0", v.mappedDevicePath)
-		logrus.Infof("Creating ext4 filesystem in newly created Ceph volume %s (device %s)", v.Name(), v.mappedDevicePath)
+		logrus.Infof("Creating ext4 filesystem in newly created Ceph volume '%s' (device %s)", v.Name(), v.mappedDevicePath)
 		if err := cmd.Run(); err != nil {
-			logrus.Errorf("Failed to create ext4 filesystem in newly created Ceph volume %s (device %s) - %s", v.Name(), v.mappedDevicePath, err)
+			logrus.Errorf("Failed to create ext4 filesystem in newly created Ceph volume '%s' (device %s) - %s", v.Name(), v.mappedDevicePath, err)
 			return "", err
 		}
 	} else if strings.Contains(stderr.String(), fmt.Sprintf("rbd image %s already exists", v.Name())) {
@@ -149,7 +143,7 @@ func (v *Volume) Mount() (mappedDevicePath string, returnedError error) {
 			return "", err
 		}
 	} else {
-		msg := fmt.Sprintf("Failed to create Ceph volume %s - %s", v.Name(), err)
+		msg := fmt.Sprintf("Failed to create Ceph volume '%s' - %s", v.Name(), err)
 		logrus.Errorf(msg)
 		return "", errors.New(msg)
 	}
@@ -159,12 +153,9 @@ func (v *Volume) Mount() (mappedDevicePath string, returnedError error) {
 }
 
 func (v *Volume) Unmount() error {
-	fmt.Printf("=== Volume.Unmount('%s') ===\n", v.Name())
-	debug.PrintStack()
 	v.m.Lock()
 	defer v.m.Unlock()
 
-	fmt.Printf("=== usedCount for %s: %d ===\n", v.Name(), v.usedCount)
 	if err := v.release(); err != nil {
 		return err
 	}
@@ -179,22 +170,20 @@ func (v *Volume) use() error {
 	// Note that the call to use() is assumed to be contained in a v.m.Lock()/Unlock() (the mutex isn't reentrant, so we can't lock it again here)
 	v.usedCount++ // If Mount() fails, Unmount() (and therefore release()) will be called, so we need to increment usedCount even if the volume is already in use
 	if v.usedCount > 1 {
-		msg := fmt.Sprintf("Ceph volume %s is being attempted to be used multiple times in this Docker daemon", v.Name())
+		msg := fmt.Sprintf("The Ceph volume '%s' is already being used by a running container in this Docker daemon", v.Name())
 		logrus.Errorf(msg)
 		return errors.New(msg)
 	}
-	fmt.Printf("=== use() of %s -> %d\n", v.Name(), v.usedCount)
 	return nil
 }
 
 func (v *Volume) release() error {
 	// Note that the call to release() is assumed to be contained in a v.m.Lock()/Unlock() (the mutex isn't reentrant, so we can't lock it again here)
 	if v.usedCount == 0 { // Shouldn't happen as long as Docker calls Mount()/Unmount() the way we think, but we've misunderstood the call sequence before
-		msg := fmt.Sprintf("Bug: Ceph volume %s is being released more times than it has been used", v.Name())
+		msg := fmt.Sprintf("Bug: The Ceph volume '%s' is being released more times than it has been used", v.Name())
 		logrus.Errorf(msg)
 		return errors.New(msg)
 	}
 	v.usedCount--
-	fmt.Printf("=== release() of %s -> %d\n", v.Name(), v.usedCount)
 	return nil
 }
