@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/pkg/pubsub"
+	"github.com/sara-nl/docker-1.9.1/pkg/jsonmessage"
+	"github.com/sara-nl/docker-1.9.1/pkg/pubsub"
 )
 
 const eventsLimit = 64

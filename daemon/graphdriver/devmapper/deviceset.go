@@ -21,12 +21,12 @@ import (
 
 	"github.com/Sirupsen/logrus"
 
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/pkg/devicemapper"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/pkg/units"
+	"github.com/sara-nl/docker-1.9.1/daemon/graphdriver"
+	"github.com/sara-nl/docker-1.9.1/pkg/devicemapper"
+	"github.com/sara-nl/docker-1.9.1/pkg/idtools"
+	"github.com/sara-nl/docker-1.9.1/pkg/mount"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/pkg/units"
 
 	"github.com/opencontainers/runc/libcontainer/label"
 )
@@ -1528,7 +1528,7 @@ func (devices *DeviceSet) initDevmapper(doInit bool) error {
 		devices.deferredDelete = true
 	}
 
-	// https://github.com/docker/docker/issues/4036
+	// https://github.com/sara-nl/docker-1.9.1/issues/4036
 	if supported := devicemapper.UdevSetSyncSupport(true); !supported {
 		logrus.Warn("Udev sync is not supported. This will lead to unexpected behavior, data loss and errors. For more information, see https://docs.docker.com/reference/commandline/daemon/#daemon-storage-driver-option")
 	}

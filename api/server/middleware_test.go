@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/docker/distribution/registry/api/errcode"
-	"github.com/docker/docker/api/server/httputils"
-	"github.com/docker/docker/errors"
+	"github.com/sara-nl/docker-1.9.1/api/server/httputils"
+	"github.com/sara-nl/docker-1.9.1/errors"
 	"golang.org/x/net/context"
 )
 

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/docker/pkg/archive"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
 	"github.com/go-check/check"
 )
 

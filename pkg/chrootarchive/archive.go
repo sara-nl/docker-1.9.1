@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/system"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
+	"github.com/sara-nl/docker-1.9.1/pkg/system"
 )
 
 var chrootArchiver = &archive.Archiver{Untar: Untar}

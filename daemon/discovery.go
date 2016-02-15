@@ -4,10 +4,10 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/discovery"
+	"github.com/sara-nl/docker-1.9.1/pkg/discovery"
 
 	// Register the libkv backends for discovery.
-	_ "github.com/docker/docker/pkg/discovery/kv"
+	_ "github.com/sara-nl/docker-1.9.1/pkg/discovery/kv"
 )
 
 const (

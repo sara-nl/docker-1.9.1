@@ -5,8 +5,8 @@ package execdrivers
 import (
 	"fmt"
 
-	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/pkg/sysinfo"
+	"github.com/sara-nl/docker-1.9.1/daemon/execdriver"
+	"github.com/sara-nl/docker-1.9.1/pkg/sysinfo"
 )
 
 // NewDriver returns a new execdriver.Driver from the given name configured with the provided options.

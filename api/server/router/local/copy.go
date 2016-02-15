@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/docker/api/server/httputils"
-	"github.com/docker/docker/api/types"
+	"github.com/sara-nl/docker-1.9.1/api/server/httputils"
+	"github.com/sara-nl/docker-1.9.1/api/types"
 	"golang.org/x/net/context"
 )
 

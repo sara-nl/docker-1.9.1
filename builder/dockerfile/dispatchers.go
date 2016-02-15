@@ -18,14 +18,14 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/image"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/nat"
-	"github.com/docker/docker/pkg/signal"
-	"github.com/docker/docker/pkg/stringutils"
-	"github.com/docker/docker/pkg/system"
-	"github.com/docker/docker/runconfig"
+	derr "github.com/sara-nl/docker-1.9.1/errors"
+	"github.com/sara-nl/docker-1.9.1/image"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/pkg/signal"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/system"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 const (

@@ -3,7 +3,7 @@ package runconfig
 import (
 	"strings"
 
-	"github.com/docker/docker/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
 )
 
 // Merge merges two Config, the image container configuration (defaults values),

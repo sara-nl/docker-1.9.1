@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/cli"
-	"github.com/docker/docker/cliconfig"
-	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/tlsconfig"
+	"github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
+	"github.com/sara-nl/docker-1.9.1/opts"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/tlsconfig"
 )
 
 const (

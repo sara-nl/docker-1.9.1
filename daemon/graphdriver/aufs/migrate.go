@@ -9,7 +9,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/docker/docker/pkg/idtools"
+	"github.com/sara-nl/docker-1.9.1/pkg/idtools"
 )
 
 type metadata struct {

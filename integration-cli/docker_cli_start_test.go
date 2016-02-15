@@ -8,7 +8,7 @@ import (
 	"github.com/go-check/check"
 )
 
-// Regression test for https://github.com/docker/docker/issues/7843
+// Regression test for https://github.com/sara-nl/docker-1.9.1/issues/7843
 func (s *DockerSuite) TestStartAttachReturnsOnError(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerCmd(c, "run", "-d", "--name", "test", "busybox")

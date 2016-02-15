@@ -6,8 +6,8 @@ import (
 	"syscall"
 
 	"github.com/Sirupsen/logrus"
-	psignal "github.com/docker/docker/pkg/signal"
-	"github.com/docker/docker/pkg/system"
+	psignal "github.com/sara-nl/docker-1.9.1/pkg/signal"
+	"github.com/sara-nl/docker-1.9.1/pkg/system"
 )
 
 func setupDumpStackTrap() {

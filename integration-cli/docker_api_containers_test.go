@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/pkg/integration"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/pkg/integration"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 	"github.com/go-check/check"
 )
 
@@ -1283,7 +1283,7 @@ func (s *DockerSuite) TestContainerApiDeleteRemoveVolume(c *check.C) {
 	}
 }
 
-// Regression test for https://github.com/docker/docker/issues/6231
+// Regression test for https://github.com/sara-nl/docker-1.9.1/issues/6231
 func (s *DockerSuite) TestContainersApiChunkedEncoding(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	out, _ := dockerCmd(c, "create", "-v", "/foo", "busybox", "true")

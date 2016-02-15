@@ -1,9 +1,9 @@
 package main
 
 import (
-	_ "github.com/docker/docker/daemon/execdriver/lxc"
-	_ "github.com/docker/docker/daemon/execdriver/native"
-	"github.com/docker/docker/pkg/reexec"
+	_ "github.com/sara-nl/docker-1.9.1/daemon/execdriver/lxc"
+	_ "github.com/sara-nl/docker-1.9.1/daemon/execdriver/native"
+	"github.com/sara-nl/docker-1.9.1/pkg/reexec"
 )
 
 func main() {

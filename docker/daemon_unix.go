@@ -7,11 +7,11 @@ import (
 	"os"
 	"syscall"
 
-	apiserver "github.com/docker/docker/api/server"
-	"github.com/docker/docker/daemon"
-	"github.com/docker/docker/pkg/system"
+	apiserver "github.com/sara-nl/docker-1.9.1/api/server"
+	"github.com/sara-nl/docker-1.9.1/daemon"
+	"github.com/sara-nl/docker-1.9.1/pkg/system"
 
-	_ "github.com/docker/docker/daemon/execdriver/native"
+	_ "github.com/sara-nl/docker-1.9.1/daemon/execdriver/native"
 )
 
 func setPlatformServerConfig(serverConfig *apiserver.Config, daemonCfg *daemon.Config) *apiserver.Config {

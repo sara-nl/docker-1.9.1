@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/docker/docker/pkg/streamformatter"
+	"github.com/sara-nl/docker-1.9.1/pkg/streamformatter"
 )
 
 func TestOutputOnPrematureClose(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/docker/pkg/idtools"
-	flag "github.com/docker/docker/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/idtools"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
 	"github.com/opencontainers/runc/libcontainer/user"
 )
 

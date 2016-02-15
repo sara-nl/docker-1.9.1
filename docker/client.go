@@ -3,9 +3,9 @@ package main
 import (
 	"path/filepath"
 
-	"github.com/docker/docker/cli"
-	"github.com/docker/docker/cliconfig"
-	flag "github.com/docker/docker/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
 )
 
 var clientFlags = &cli.ClientFlags{FlagSet: new(flag.FlagSet), Common: commonFlags}

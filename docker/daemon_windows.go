@@ -5,8 +5,8 @@ package main
 import (
 	"os"
 
-	apiserver "github.com/docker/docker/api/server"
-	"github.com/docker/docker/daemon"
+	apiserver "github.com/sara-nl/docker-1.9.1/api/server"
+	"github.com/sara-nl/docker-1.9.1/daemon"
 )
 
 func setPlatformServerConfig(serverConfig *apiserver.Config, daemonCfg *daemon.Config) *apiserver.Config {

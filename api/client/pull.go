@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/url"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/graph/tags"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/registry"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/graph/tags"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/registry"
 )
 
 // CmdPull pulls an image or a repository from the registry.

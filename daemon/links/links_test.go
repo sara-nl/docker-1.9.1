@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
 )
 
 // Just to make life easier

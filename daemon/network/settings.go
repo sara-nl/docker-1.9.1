@@ -1,6 +1,6 @@
 package network
 
-import "github.com/docker/docker/pkg/nat"
+import "github.com/sara-nl/docker-1.9.1/pkg/nat"
 
 // Address represents an IP address
 type Address struct {

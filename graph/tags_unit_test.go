@@ -8,12 +8,12 @@ import (
 	"path"
 	"testing"
 
-	"github.com/docker/docker/daemon/events"
-	"github.com/docker/docker/daemon/graphdriver"
-	_ "github.com/docker/docker/daemon/graphdriver/vfs" // import the vfs driver so it is used in the tests
-	"github.com/docker/docker/graph/tags"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/daemon/events"
+	"github.com/sara-nl/docker-1.9.1/daemon/graphdriver"
+	_ "github.com/sara-nl/docker-1.9.1/daemon/graphdriver/vfs" // import the vfs driver so it is used in the tests
+	"github.com/sara-nl/docker-1.9.1/graph/tags"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 const (

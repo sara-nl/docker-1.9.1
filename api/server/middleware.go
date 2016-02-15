@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/api/server/httputils"
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/version"
+	"github.com/sara-nl/docker-1.9.1/api"
+	"github.com/sara-nl/docker-1.9.1/api/server/httputils"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/errors"
+	"github.com/sara-nl/docker-1.9.1/pkg/version"
 	"golang.org/x/net/context"
 )
 

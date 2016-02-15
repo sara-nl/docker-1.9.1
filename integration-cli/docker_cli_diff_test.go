@@ -84,7 +84,7 @@ func (s *DockerSuite) TestDiffEnsureOnlyKmsgAndPtmx(c *check.C) {
 	}
 }
 
-// https://github.com/docker/docker/pull/14381#discussion_r33859347
+// https://github.com/sara-nl/docker-1.9.1/pull/14381#discussion_r33859347
 func (s *DockerSuite) TestDiffEmptyArgClientError(c *check.C) {
 	out, _, err := dockerCmdWithError("diff", "")
 	c.Assert(err, check.NotNil)

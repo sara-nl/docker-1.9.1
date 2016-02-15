@@ -4,11 +4,11 @@ import (
 	"net/url"
 	"time"
 
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/parsers/filters"
-	"github.com/docker/docker/pkg/timeutils"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/opts"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers/filters"
+	"github.com/sara-nl/docker-1.9.1/pkg/timeutils"
 )
 
 // CmdEvents prints a live stream of real time events from the server.

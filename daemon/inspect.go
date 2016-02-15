@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/versions/v1p20"
-	"github.com/docker/docker/daemon/network"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/api/types/versions/v1p20"
+	"github.com/sara-nl/docker-1.9.1/daemon/network"
 )
 
 // ContainerInspect returns low-level information about a

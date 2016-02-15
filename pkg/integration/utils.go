@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/docker/docker/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
 )
 
 // GetExitCode returns the ExitStatus of the specified error if its type is

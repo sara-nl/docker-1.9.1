@@ -6,9 +6,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/cliconfig"
-	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/registry"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/streamformatter"
+	"github.com/sara-nl/docker-1.9.1/registry"
 )
 
 // ImagePushConfig stores push configuration.

@@ -9,8 +9,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/idtools"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
+	"github.com/sara-nl/docker-1.9.1/pkg/idtools"
 )
 
 // FsMagic unsigned id of the filesystem in use.

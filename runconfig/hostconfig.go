@@ -5,9 +5,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/docker/docker/pkg/nat"
-	"github.com/docker/docker/pkg/stringutils"
-	"github.com/docker/docker/pkg/ulimit"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/ulimit"
 )
 
 // KeyValuePair is a structure that hold a value for a key.

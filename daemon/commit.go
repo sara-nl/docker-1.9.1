@@ -1,8 +1,8 @@
 package daemon
 
 import (
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 // ContainerCommitConfig contains build configs for commit operation,

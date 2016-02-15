@@ -9,12 +9,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/docker/docker/api/types"
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/cliconfig"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/term"
-	"github.com/docker/docker/registry"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/term"
+	"github.com/sara-nl/docker-1.9.1/registry"
 )
 
 // CmdLogin logs in or registers a user to a Docker registry service.

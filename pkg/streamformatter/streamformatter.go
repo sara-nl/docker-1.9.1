@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/sara-nl/docker-1.9.1/pkg/jsonmessage"
 )
 
 // StreamFormatter formats a stream, optionally using JSON.

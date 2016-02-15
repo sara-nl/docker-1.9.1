@@ -14,7 +14,7 @@ import (
 	"github.com/go-check/check"
 	"sort"
 
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
 )
 
 func (s *DockerSuite) TestPsListContainersBase(c *check.C) {

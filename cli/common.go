@@ -1,8 +1,8 @@
 package cli
 
 import (
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/tlsconfig"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/tlsconfig"
 )
 
 // CommonFlags represents flags that are common to both the client and the daemon.

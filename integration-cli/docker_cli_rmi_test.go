@@ -165,7 +165,7 @@ func (s *DockerSuite) TestRmiImgIDForce(c *check.C) {
 	}
 }
 
-// See https://github.com/docker/docker/issues/14116
+// See https://github.com/sara-nl/docker-1.9.1/issues/14116
 func (s *DockerSuite) TestRmiImageIDForceWithRunningContainersAndMultipleTags(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	dockerfile := "FROM busybox\nRUN echo test 14116\n"

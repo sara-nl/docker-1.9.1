@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/docker/docker/pkg/longpath"
+	"github.com/sara-nl/docker-1.9.1/pkg/longpath"
 )
 
 // Size walks a directory tree and returns its total size in bytes.

@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/docker/docker/pkg/ulimit"
+	"github.com/sara-nl/docker-1.9.1/pkg/ulimit"
 	"github.com/go-check/check"
 )
 

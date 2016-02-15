@@ -189,7 +189,7 @@ For example, to update the current release's docs, do the following:
 
 		$ git checkout -b post-1.2.0-docs-update-1 upstream/docs
 	
-3. In a browser window, open [https://github.com/docker/docker/commits/master].
+3. In a browser window, open [https://github.com/sara-nl/docker-1.9.1/commits/master].
 
 4. Locate the merges you want to publish.
 
@@ -287,7 +287,7 @@ aws cloudfront  create-invalidation --profile docs.docker.com --distribution-id 
 ### Generate the man pages 
 
 For information on generating man pages (short for manual page), see the README.md
-document in [the man page directory](https://github.com/docker/docker/tree/master/docker)
+document in [the man page directory](https://github.com/sara-nl/docker-1.9.1/tree/master/docker)
 in this project.
 
 

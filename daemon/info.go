@@ -6,15 +6,15 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/pkg/fileutils"
-	"github.com/docker/docker/pkg/parsers/kernel"
-	"github.com/docker/docker/pkg/parsers/operatingsystem"
-	"github.com/docker/docker/pkg/sysinfo"
-	"github.com/docker/docker/pkg/system"
-	"github.com/docker/docker/registry"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/pkg/fileutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers/kernel"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers/operatingsystem"
+	"github.com/sara-nl/docker-1.9.1/pkg/sysinfo"
+	"github.com/sara-nl/docker-1.9.1/pkg/system"
+	"github.com/sara-nl/docker-1.9.1/registry"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 // SystemInfo returns information about the host server the daemon is running on.

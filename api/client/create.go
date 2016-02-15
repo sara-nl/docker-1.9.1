@@ -9,12 +9,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/docker/api/types"
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/graph/tags"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/registry"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/graph/tags"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/registry"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 func (cli *DockerCli) pullImage(image string) error {

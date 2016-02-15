@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/pkg/plugins"
-	"github.com/docker/docker/pkg/tlsconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/plugins"
+	"github.com/sara-nl/docker-1.9.1/pkg/tlsconfig"
 )
 
 func TestVolumeRequestError(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"regexp"
 
-	"github.com/docker/docker/pkg/httputils"
+	"github.com/sara-nl/docker-1.9.1/pkg/httputils"
 )
 
 // When downloading remote contexts, limit the amount (in bytes)

@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/volume"
+	"github.com/sara-nl/docker-1.9.1/volume"
 	"os/exec"
 	"strconv"
 	"strings"

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 // WalkHistory calls the handler function for each image in the

@@ -3,7 +3,7 @@ package opts
 import (
 	"fmt"
 
-	"github.com/docker/docker/pkg/ulimit"
+	"github.com/sara-nl/docker-1.9.1/pkg/ulimit"
 )
 
 // UlimitOpt defines a map of Ulimits

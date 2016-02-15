@@ -3,7 +3,7 @@ package volumetestutils
 import (
 	"fmt"
 
-	"github.com/docker/docker/volume"
+	"github.com/sara-nl/docker-1.9.1/volume"
 )
 
 // NoopVolume is a volume that doesn't perform any operation

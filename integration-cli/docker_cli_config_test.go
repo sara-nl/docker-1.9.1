@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/pkg/homedir"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/pkg/homedir"
 	"github.com/go-check/check"
 )
 

@@ -9,7 +9,7 @@ Container profiles are loaded automatically by Docker. A profile
 for the Docker Engine itself also exists and is installed
 with the official *.deb* packages. Advanced users and package
 managers may find the profile for */usr/bin/docker* underneath
-[contrib/apparmor](https://github.com/docker/docker/tree/master/contrib/apparmor)
+[contrib/apparmor](https://github.com/sara-nl/docker-1.9.1/tree/master/contrib/apparmor)
 in the Docker Engine source repository.
 
 

@@ -11,7 +11,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/docker/docker/pkg/timeutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/timeutils"
 )
 
 // ErrReadLogsNotSupported is returned when the logger does not support reading logs.

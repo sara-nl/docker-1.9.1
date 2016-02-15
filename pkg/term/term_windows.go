@@ -10,7 +10,7 @@ import (
 
 	"github.com/Azure/go-ansiterm/winterm"
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/term/windows"
+	"github.com/sara-nl/docker-1.9.1/pkg/term/windows"
 )
 
 // State holds the console mode for the terminal.

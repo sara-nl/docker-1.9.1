@@ -9,9 +9,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/docker/docker/api/types"
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
 )
 
 var funcMap = template.FuncMap{
@@ -160,7 +160,7 @@ func (cli *DockerCli) CmdInspect(args ...string) error {
 	if tmpl == nil {
 		// Note that we will always write "[]" when "-f" isn't specified,
 		// to make sure the output would always be array, see
-		// https://github.com/docker/docker/pull/9500#issuecomment-65846734
+		// https://github.com/sara-nl/docker-1.9.1/pull/9500#issuecomment-65846734
 		if _, err := io.Copy(cli.out, indented); err != nil {
 			return err
 		}

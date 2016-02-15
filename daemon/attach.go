@@ -3,7 +3,7 @@ package daemon
 import (
 	"io"
 
-	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/sara-nl/docker-1.9.1/pkg/stdcopy"
 )
 
 // ContainerAttachWithLogsConfig holds the streams to use when connecting to a container to view logs.

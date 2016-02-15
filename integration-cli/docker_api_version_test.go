@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
 	"github.com/go-check/check"
 )
 

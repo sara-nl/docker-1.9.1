@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/pkg/integration/checker"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/pkg/integration/checker"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 	"github.com/go-check/check"
 )
 

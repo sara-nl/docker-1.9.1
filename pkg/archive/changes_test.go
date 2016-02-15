@@ -175,7 +175,7 @@ func TestChangesWithChanges(t *testing.T) {
 	checkChanges(expectedChanges, changes, t)
 }
 
-// See https://github.com/docker/docker/pull/13590
+// See https://github.com/sara-nl/docker-1.9.1/pull/13590
 func TestChangesWithChangesGH13590(t *testing.T) {
 	baseLayer, err := ioutil.TempDir("", "docker-changes-test.")
 	defer os.RemoveAll(baseLayer)

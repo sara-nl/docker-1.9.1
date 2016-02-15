@@ -2,10 +2,10 @@
 package v1p19
 
 import (
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/versions/v1p20"
-	"github.com/docker/docker/pkg/nat"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/api/types/versions/v1p20"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 // ContainerJSON is a backcompatibility struct for APIs prior to 1.20.

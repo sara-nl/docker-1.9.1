@@ -7,10 +7,10 @@ import (
 
 	"github.com/Sirupsen/logrus"
 
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/chrootarchive"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
+	"github.com/sara-nl/docker-1.9.1/pkg/chrootarchive"
+	"github.com/sara-nl/docker-1.9.1/pkg/idtools"
+	"github.com/sara-nl/docker-1.9.1/pkg/ioutils"
 )
 
 // NaiveDiffDriver takes a ProtoDriver and adds the

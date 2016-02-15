@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/ioutils"
 	"github.com/docker/libnetwork/resolvconf/dns"
 )
 

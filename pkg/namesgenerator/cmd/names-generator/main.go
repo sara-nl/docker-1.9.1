@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/docker/docker/pkg/namesgenerator"
+	"github.com/sara-nl/docker-1.9.1/pkg/namesgenerator"
 )
 
 func main() {

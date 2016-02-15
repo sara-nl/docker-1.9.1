@@ -18,9 +18,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/pkg/integration/checker"
-	"github.com/docker/docker/pkg/nat"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/integration/checker"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 	"github.com/docker/libnetwork/resolvconf"
 	"github.com/go-check/check"
 )
@@ -1889,7 +1889,7 @@ func (s *DockerSuite) TestRunPortInUse(c *check.C) {
 	}
 }
 
-// https://github.com/docker/docker/issues/12148
+// https://github.com/sara-nl/docker-1.9.1/issues/12148
 func (s *DockerSuite) TestRunAllocatePortInReservedRange(c *check.C) {
 	// TODO Windows. -P is not yet supported
 	testRequires(c, DaemonIsLinux)
@@ -1956,7 +1956,7 @@ func (s *DockerSuite) TestRunMountOrdering(c *check.C) {
 		"ls /tmp/touch-me && ls /tmp/foo/touch-me && ls /tmp/tmp2/touch-me && ls /tmp/tmp2/foo/touch-me")
 }
 
-// Regression test for https://github.com/docker/docker/issues/8259
+// Regression test for https://github.com/sara-nl/docker-1.9.1/issues/8259
 func (s *DockerSuite) TestRunReuseBindVolumeThatIsSymlink(c *check.C) {
 	// /tmp gets permission denied
 	testRequires(c, NotUserNamespace)
@@ -2690,7 +2690,7 @@ func (s *DockerSuite) TestRunWithTooSmallMemoryLimit(c *check.C) {
 	// memory limits on containers
 	testRequires(c, DaemonIsLinux)
 	// this memory limit is 1 byte less than the min, which is 4MB
-	// https://github.com/docker/docker/blob/v1.5.0/daemon/create.go#L22
+	// https://github.com/sara-nl/docker-1.9.1/blob/v1.5.0/daemon/create.go#L22
 	out, _, err := dockerCmdWithError("run", "-m", "4194303", "busybox")
 	if err == nil || !strings.Contains(out, "Minimum memory limit allowed is 4MB") {
 		c.Fatalf("expected run to fail when using too low a memory limit: %q", out)
@@ -2842,7 +2842,7 @@ func (s *DockerSuite) TestRunCapAddCHOWN(c *check.C) {
 	}
 }
 
-// https://github.com/docker/docker/pull/14498
+// https://github.com/sara-nl/docker-1.9.1/pull/14498
 func (s *DockerSuite) TestVolumeFromMixedRWOptions(c *check.C) {
 	// Not applicable on Windows as volumes are not supported on Winodws
 	testRequires(c, DaemonIsLinux)

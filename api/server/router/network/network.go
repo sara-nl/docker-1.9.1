@@ -3,11 +3,11 @@ package network
 import (
 	"net/http"
 
-	"github.com/docker/docker/api/server/httputils"
-	"github.com/docker/docker/api/server/router"
-	"github.com/docker/docker/api/server/router/local"
-	"github.com/docker/docker/daemon"
-	"github.com/docker/docker/errors"
+	"github.com/sara-nl/docker-1.9.1/api/server/httputils"
+	"github.com/sara-nl/docker-1.9.1/api/server/router"
+	"github.com/sara-nl/docker-1.9.1/api/server/router/local"
+	"github.com/sara-nl/docker-1.9.1/daemon"
+	"github.com/sara-nl/docker-1.9.1/errors"
 	"golang.org/x/net/context"
 )
 

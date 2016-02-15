@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
 )
 
 // CmdRename renames a container.

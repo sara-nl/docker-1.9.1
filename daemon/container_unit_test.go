@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/docker/pkg/signal"
-	"github.com/docker/docker/runconfig"
-	"github.com/docker/docker/volume"
-	"github.com/docker/docker/volume/drivers"
+	"github.com/sara-nl/docker-1.9.1/pkg/signal"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
+	"github.com/sara-nl/docker-1.9.1/volume"
+	"github.com/sara-nl/docker-1.9.1/volume/drivers"
 )
 
 func TestGetFullName(t *testing.T) {

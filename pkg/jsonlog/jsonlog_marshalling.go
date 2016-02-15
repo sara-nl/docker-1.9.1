@@ -14,7 +14,7 @@
 //-
 //        "unicode/utf8"
 //+
-//+       "github.com/docker/docker/pkg/timeutils"
+//+       "github.com/sara-nl/docker-1.9.1/pkg/timeutils"
 // )
 //
 // func (mj *JSONLog) MarshalJSON() ([]byte, error) {
@@ -70,7 +70,7 @@ import (
 	"bytes"
 	"unicode/utf8"
 
-	"github.com/docker/docker/pkg/timeutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/timeutils"
 )
 
 // MarshalJSON marshals the JSONLog.

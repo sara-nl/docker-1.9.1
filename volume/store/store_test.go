@@ -3,9 +3,9 @@ package store
 import (
 	"testing"
 
-	"github.com/docker/docker/volume"
-	"github.com/docker/docker/volume/drivers"
-	vt "github.com/docker/docker/volume/testutils"
+	"github.com/sara-nl/docker-1.9.1/volume"
+	"github.com/sara-nl/docker-1.9.1/volume/drivers"
+	vt "github.com/sara-nl/docker-1.9.1/volume/testutils"
 )
 
 func TestList(t *testing.T) {

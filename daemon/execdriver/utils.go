@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/docker/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
 	"github.com/syndtr/gocapability/capability"
 )
 

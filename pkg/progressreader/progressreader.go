@@ -5,8 +5,8 @@ package progressreader
 import (
 	"io"
 
-	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/pkg/streamformatter"
+	"github.com/sara-nl/docker-1.9.1/pkg/jsonmessage"
+	"github.com/sara-nl/docker-1.9.1/pkg/streamformatter"
 )
 
 // Config contains the configuration for a Reader with progress bar.

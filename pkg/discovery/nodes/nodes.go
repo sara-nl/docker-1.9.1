@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/pkg/discovery"
+	"github.com/sara-nl/docker-1.9.1/pkg/discovery"
 )
 
 // Discovery is exported

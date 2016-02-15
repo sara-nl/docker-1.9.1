@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/runconfig"
-	"github.com/docker/docker/volume"
+	derr "github.com/sara-nl/docker-1.9.1/errors"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
+	"github.com/sara-nl/docker-1.9.1/volume"
 	"github.com/opencontainers/runc/libcontainer/label"
 )
 

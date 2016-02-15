@@ -11,12 +11,12 @@ import (
 	"sync"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/builder"
-	"github.com/docker/docker/builder/dockerfile/parser"
-	"github.com/docker/docker/daemon"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/pkg/ulimit"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/builder"
+	"github.com/sara-nl/docker-1.9.1/builder/dockerfile/parser"
+	"github.com/sara-nl/docker-1.9.1/daemon"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/pkg/ulimit"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 var validCommitCommands = map[string]bool{

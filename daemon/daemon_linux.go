@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/mount"
+	"github.com/sara-nl/docker-1.9.1/pkg/mount"
 )
 
 // cleanupMounts umounts shm/mqueue mounts for old containers

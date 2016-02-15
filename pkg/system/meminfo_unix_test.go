@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/pkg/units"
+	"github.com/sara-nl/docker-1.9.1/pkg/units"
 )
 
 // TestMemInfo tests parseMemInfo with a static meminfo string

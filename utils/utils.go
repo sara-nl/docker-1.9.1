@@ -14,10 +14,10 @@ import (
 	"strings"
 
 	"github.com/docker/distribution/registry/api/errcode"
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/fileutils"
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
+	"github.com/sara-nl/docker-1.9.1/pkg/fileutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
 )
 
 // SelfPath figures out the absolute path of our own binary (if it's still around).

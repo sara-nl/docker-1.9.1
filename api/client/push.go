@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/url"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/registry"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/registry"
 )
 
 // CmdPush pushes an image or repository to the registry.

@@ -132,7 +132,7 @@ it must be approved by BDFL.
 
 	text = """
 The [DCO or `Sign your work`](
-https://github.com/docker/docker/blob/master/CONTRIBUTING.md#sign-your-work)
+https://github.com/sara-nl/docker-1.9.1/blob/master/CONTRIBUTING.md#sign-your-work)
 requirement is not intended as a roadblock or speed bump.
 
 Some Docker contributors are not as familiar with `git`, or have used a web based

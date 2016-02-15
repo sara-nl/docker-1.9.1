@@ -3,8 +3,8 @@ package graph
 import (
 	"testing"
 
-	"github.com/docker/docker/pkg/broadcaster"
-	"github.com/docker/docker/pkg/reexec"
+	"github.com/sara-nl/docker-1.9.1/pkg/broadcaster"
+	"github.com/sara-nl/docker-1.9.1/pkg/reexec"
 )
 
 func init() {

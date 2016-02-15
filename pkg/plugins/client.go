@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/sockets"
-	"github.com/docker/docker/pkg/tlsconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/sockets"
+	"github.com/sara-nl/docker-1.9.1/pkg/tlsconfig"
 )
 
 const (

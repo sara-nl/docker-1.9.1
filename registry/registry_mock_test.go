@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/opts"
+	"github.com/sara-nl/docker-1.9.1/opts"
 	"github.com/gorilla/mux"
 
 	"github.com/Sirupsen/logrus"

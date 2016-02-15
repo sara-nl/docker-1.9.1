@@ -3,7 +3,7 @@ package opts
 import (
 	"testing"
 
-	"github.com/docker/docker/pkg/ulimit"
+	"github.com/sara-nl/docker-1.9.1/pkg/ulimit"
 )
 
 func TestUlimitOpt(t *testing.T) {

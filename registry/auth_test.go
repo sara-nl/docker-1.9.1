@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/docker/cliconfig"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
 )
 
 func TestEncodeAuth(t *testing.T) {

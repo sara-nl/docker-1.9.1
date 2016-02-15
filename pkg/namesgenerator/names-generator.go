@@ -3,7 +3,7 @@ package namesgenerator
 import (
 	"fmt"
 
-	"github.com/docker/docker/pkg/random"
+	"github.com/sara-nl/docker-1.9.1/pkg/random"
 )
 
 var (

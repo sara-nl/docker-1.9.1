@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/docker/docker/pkg/plugins"
-	"github.com/docker/docker/volume"
+	"github.com/sara-nl/docker-1.9.1/pkg/plugins"
+	"github.com/sara-nl/docker-1.9.1/volume"
 )
 
 // currently created by hand. generation tool would generate this like:

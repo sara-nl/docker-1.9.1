@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/docker/docker/pkg/sysinfo"
+	"github.com/sara-nl/docker-1.9.1/pkg/sysinfo"
 )
 
 var (

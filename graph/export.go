@@ -11,9 +11,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/registry"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/registry"
 )
 
 // ImageExport exports list of images to a output stream specified in the

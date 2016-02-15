@@ -6,8 +6,8 @@ import (
 	"path"
 
 	"github.com/Sirupsen/logrus"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/volume/store"
+	derr "github.com/sara-nl/docker-1.9.1/errors"
+	"github.com/sara-nl/docker-1.9.1/volume/store"
 )
 
 // ContainerRmConfig is a holder for passing in runtime config.

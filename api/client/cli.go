@@ -10,12 +10,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/docker/cli"
-	"github.com/docker/docker/cliconfig"
-	"github.com/docker/docker/opts"
-	"github.com/docker/docker/pkg/sockets"
-	"github.com/docker/docker/pkg/term"
-	"github.com/docker/docker/pkg/tlsconfig"
+	"github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
+	"github.com/sara-nl/docker-1.9.1/opts"
+	"github.com/sara-nl/docker-1.9.1/pkg/sockets"
+	"github.com/sara-nl/docker-1.9.1/pkg/term"
+	"github.com/sara-nl/docker-1.9.1/pkg/tlsconfig"
 )
 
 // DockerCli represents the docker command line client.
@@ -88,7 +88,7 @@ func (cli *DockerCli) PsFormat() string {
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.
 // The key file, protocol (i.e. unix) and address are passed in as strings, along with the tls.Config. If the tls.Config
 // is set the client scheme will be set to https.
-// The client will be given a 32-second timeout (see https://github.com/docker/docker/pull/8035).
+// The client will be given a 32-second timeout (see https://github.com/sara-nl/docker-1.9.1/pull/8035).
 func NewDockerCli(in io.ReadCloser, out, err io.Writer, clientFlags *cli.ClientFlags) *DockerCli {
 	cli := &DockerCli{
 		in:      in,

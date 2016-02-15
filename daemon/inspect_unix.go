@@ -3,8 +3,8 @@
 package daemon
 
 import (
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/versions/v1p19"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/api/types/versions/v1p19"
 )
 
 // This sets platform-specific fields

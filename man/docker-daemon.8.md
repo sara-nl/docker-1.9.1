@@ -419,7 +419,7 @@ When `udev` sync support is `false`, a race condition occurs between
 the `devicemapper` and `udev` during create and cleanup. The race
 condition results in errors and failures. (For information on these
 failures, see
-[docker#4036](https://github.com/docker/docker/issues/4036))
+[docker#4036](https://github.com/sara-nl/docker-1.9.1/issues/4036))
 
 To allow the `docker` daemon to start, regardless of whether `udev` sync is
 `false`, set `dm.override_udev_sync_check` to true:
@@ -432,7 +432,7 @@ the errors are happening.
 **Note**: The ideal is to pursue a `docker` daemon and environment
 that does support synchronizing with `udev`. For further discussion on
 this topic, see
-[docker#4036](https://github.com/docker/docker/issues/4036).
+[docker#4036](https://github.com/sara-nl/docker-1.9.1/issues/4036).
 Otherwise, set this flag for migrating existing Docker daemons to a
 daemon with a supported environment.
 

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/docker/docker/pkg/nat"
-	"github.com/docker/docker/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
 )
 
 // Config contains the configuration data about a container.

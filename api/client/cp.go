@@ -11,11 +11,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/docker/api/types"
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/pkg/archive"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/system"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/system"
 )
 
 type copyDirection int

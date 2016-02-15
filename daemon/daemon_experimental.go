@@ -9,9 +9,9 @@ import (
 	"runtime"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/directory"
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/directory"
+	"github.com/sara-nl/docker-1.9.1/pkg/idtools"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 func setupRemappedRoot(config *Config) ([]idtools.IDMap, []idtools.IDMap, error) {

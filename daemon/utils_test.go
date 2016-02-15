@@ -5,7 +5,7 @@ package daemon
 import (
 	"testing"
 
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 func TestMergeLxcConfig(t *testing.T) {

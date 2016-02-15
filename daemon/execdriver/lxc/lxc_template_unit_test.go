@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/daemon/execdriver"
-	nativeTemplate "github.com/docker/docker/daemon/execdriver/native/template"
+	"github.com/sara-nl/docker-1.9.1/daemon/execdriver"
+	nativeTemplate "github.com/sara-nl/docker-1.9.1/daemon/execdriver/native/template"
 	"github.com/opencontainers/runc/libcontainer/configs"
 	"github.com/syndtr/gocapability/capability"
 )

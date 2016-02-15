@@ -1,6 +1,6 @@
 package volumedrivers
 
-import "github.com/docker/docker/volume"
+import "github.com/sara-nl/docker-1.9.1/volume"
 
 type volumeDriverAdapter struct {
 	name  string

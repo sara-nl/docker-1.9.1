@@ -30,9 +30,9 @@ runtime:
  - a [properly mounted](
    https://github.com/tianon/cgroupfs-mount/blob/master/cgroupfs-mount)
    cgroupfs hierarchy (having a single, all-encompassing "cgroup" mount
-   point [is](https://github.com/docker/docker/issues/2683)
-   [not](https://github.com/docker/docker/issues/3485)
-   [sufficient](https://github.com/docker/docker/issues/4568))
+   point [is](https://github.com/sara-nl/docker-1.9.1/issues/2683)
+   [not](https://github.com/sara-nl/docker-1.9.1/issues/3485)
+   [sufficient](https://github.com/sara-nl/docker-1.9.1/issues/4568))
 
 ## Check kernel dependencies
 
@@ -95,7 +95,7 @@ To set the file's execute bit on Linux and OS X:
     $ chmod +x docker
 
 To get the list of stable release version numbers from GitHub, view the
-`docker/docker` [releases page](https://github.com/docker/docker/releases). 
+`docker/docker` [releases page](https://github.com/sara-nl/docker-1.9.1/releases). 
 
 > **Note**
 >

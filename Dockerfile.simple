@@ -8,8 +8,8 @@
 FROM debian:jessie
 
 # compile and runtime deps
-# https://github.com/docker/docker/blob/master/project/PACKAGERS.md#build-dependencies
-# https://github.com/docker/docker/blob/master/project/PACKAGERS.md#runtime-dependencies
+# https://github.com/sara-nl/docker-1.9.1/blob/master/project/PACKAGERS.md#build-dependencies
+# https://github.com/sara-nl/docker-1.9.1/blob/master/project/PACKAGERS.md#runtime-dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
 		btrfs-tools \
 		curl \

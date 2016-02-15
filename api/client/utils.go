@@ -18,16 +18,16 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/cliconfig"
-	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/pkg/signal"
-	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/docker/docker/pkg/term"
-	"github.com/docker/docker/registry"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/api"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/jsonmessage"
+	"github.com/sara-nl/docker-1.9.1/pkg/signal"
+	"github.com/sara-nl/docker-1.9.1/pkg/stdcopy"
+	"github.com/sara-nl/docker-1.9.1/pkg/term"
+	"github.com/sara-nl/docker-1.9.1/registry"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 var (

@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/docker/docker/pkg/idtools"
+	"github.com/sara-nl/docker-1.9.1/pkg/idtools"
 	// TODO Windows: Factor out ulimit
-	"github.com/docker/docker/pkg/ulimit"
+	"github.com/sara-nl/docker-1.9.1/pkg/ulimit"
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/configs"
 )

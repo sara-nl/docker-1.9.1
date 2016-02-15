@@ -13,14 +13,14 @@ import (
 	"sync"
 
 	"github.com/docker/distribution/digest"
-	"github.com/docker/docker/daemon/events"
-	"github.com/docker/docker/graph/tags"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/pkg/broadcaster"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/registry"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/daemon/events"
+	"github.com/sara-nl/docker-1.9.1/graph/tags"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/pkg/broadcaster"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/registry"
+	"github.com/sara-nl/docker-1.9.1/utils"
 	"github.com/docker/libtrust"
 )
 

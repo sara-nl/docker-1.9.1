@@ -197,7 +197,7 @@ to the host.
 This won't affect regular web apps; but malicious users will find that
 the arsenal at their disposal has shrunk considerably! By default Docker
 drops all capabilities except [those
-needed](https://github.com/docker/docker/blob/master/daemon/execdriver/native/template/default_template.go),
+needed](https://github.com/sara-nl/docker-1.9.1/blob/master/daemon/execdriver/native/template/default_template.go),
 a whitelist instead of a blacklist approach. You can see a full list of
 available capabilities in [Linux
 manpages](http://man7.org/linux/man-pages/man7/capabilities.7.html).

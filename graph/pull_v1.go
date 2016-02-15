@@ -11,12 +11,12 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/registry/client/transport"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/pkg/progressreader"
-	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/registry"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/pkg/progressreader"
+	"github.com/sara-nl/docker-1.9.1/pkg/streamformatter"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/registry"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 type v1Puller struct {

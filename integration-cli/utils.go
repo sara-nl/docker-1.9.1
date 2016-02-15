@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/docker/docker/pkg/integration"
+	"github.com/sara-nl/docker-1.9.1/pkg/integration"
 )
 
 func getExitCode(err error) (int, error) {

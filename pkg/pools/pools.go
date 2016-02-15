@@ -14,7 +14,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/ioutils"
 )
 
 var (

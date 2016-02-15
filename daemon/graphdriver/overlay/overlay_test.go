@@ -3,7 +3,7 @@
 package overlay
 
 import (
-	"github.com/docker/docker/daemon/graphdriver/graphtest"
+	"github.com/sara-nl/docker-1.9.1/daemon/graphdriver/graphtest"
 	"testing"
 )
 

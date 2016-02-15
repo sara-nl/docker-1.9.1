@@ -115,6 +115,6 @@ The complete list of deprecated features can be found on the
 ## Licensing
 
 Docker is licensed under the Apache License, Version 2.0. See
-[LICENSE](https://github.com/docker/docker/blob/master/LICENSE) for the full
+[LICENSE](https://github.com/sara-nl/docker-1.9.1/blob/master/LICENSE) for the full
 license text.
 

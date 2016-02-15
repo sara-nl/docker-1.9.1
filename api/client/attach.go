@@ -7,10 +7,10 @@ import (
 	"net/url"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types"
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/signal"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/signal"
 )
 
 // CmdAttach attaches to a running container.

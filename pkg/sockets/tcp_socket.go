@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/docker/docker/pkg/listenbuffer"
+	"github.com/sara-nl/docker-1.9.1/pkg/listenbuffer"
 )
 
 // NewTCPSocket creates a TCP socket listener with the specified address and
@@ -33,7 +33,7 @@ func NewTCPSocket(addr string, tlsConfig *tls.Config, activate <-chan struct{}) 
 // If the proto is unix (using a unix socket to communicate) the compression
 // is disabled.
 func ConfigureTCPTransport(tr *http.Transport, proto, addr string) {
-	// Why 32? See https://github.com/docker/docker/pull/8035.
+	// Why 32? See https://github.com/sara-nl/docker-1.9.1/pull/8035.
 	timeout := 32 * time.Second
 	if proto == "unix" {
 		// No need for compression in local communications.

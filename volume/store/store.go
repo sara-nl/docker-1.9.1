@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/volume"
-	"github.com/docker/docker/volume/drivers"
+	"github.com/sara-nl/docker-1.9.1/volume"
+	"github.com/sara-nl/docker-1.9.1/volume/drivers"
 )
 
 var (

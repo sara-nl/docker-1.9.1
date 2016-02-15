@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
+	"github.com/sara-nl/docker-1.9.1/api/types"
 	"github.com/go-check/check"
 )
 

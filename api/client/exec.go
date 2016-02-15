@@ -6,10 +6,10 @@ import (
 	"io"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types"
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/pkg/promise"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/pkg/promise"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 // CmdExec runs a command in a running container.

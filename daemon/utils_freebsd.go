@@ -1,7 +1,7 @@
 package daemon
 
 import (
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 func mergeLxcConfIntoOptions(hostConfig *runconfig.HostConfig) ([]string, error) {

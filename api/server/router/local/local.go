@@ -5,9 +5,9 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/docker/docker/api/server/httputils"
-	dkrouter "github.com/docker/docker/api/server/router"
-	"github.com/docker/docker/daemon"
+	"github.com/sara-nl/docker-1.9.1/api/server/httputils"
+	dkrouter "github.com/sara-nl/docker-1.9.1/api/server/router"
+	"github.com/sara-nl/docker-1.9.1/daemon"
 )
 
 // router is a docker router that talks with the local docker daemon.

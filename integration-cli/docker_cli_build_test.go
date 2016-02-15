@@ -18,10 +18,10 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/docker/docker/builder/dockerfile/command"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/integration/checker"
-	"github.com/docker/docker/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/builder/dockerfile/command"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
+	"github.com/sara-nl/docker-1.9.1/pkg/integration/checker"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
 	"github.com/go-check/check"
 )
 

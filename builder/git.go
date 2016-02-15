@@ -3,8 +3,8 @@ package builder
 import (
 	"os"
 
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 // MakeGitContext returns a Context from gitURL that is cloned in a temporary directory.

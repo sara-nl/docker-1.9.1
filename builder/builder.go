@@ -9,9 +9,9 @@ import (
 	"os"
 
 	// TODO: remove dependency on daemon
-	"github.com/docker/docker/daemon"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/daemon"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 // Builder abstracts a Docker builder whose only purpose is to build a Docker image referenced by an imageID.

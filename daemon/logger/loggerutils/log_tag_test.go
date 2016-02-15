@@ -3,7 +3,7 @@ package loggerutils
 import (
 	"testing"
 
-	"github.com/docker/docker/daemon/logger"
+	"github.com/sara-nl/docker-1.9.1/daemon/logger"
 )
 
 func TestParseLogTagDefaultTag(t *testing.T) {

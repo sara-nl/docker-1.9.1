@@ -5,7 +5,7 @@ package btrfs
 import (
 	"testing"
 
-	"github.com/docker/docker/daemon/graphdriver/graphtest"
+	"github.com/sara-nl/docker-1.9.1/daemon/graphdriver/graphtest"
 )
 
 // This avoids creating a new driver for each test if all tests are run

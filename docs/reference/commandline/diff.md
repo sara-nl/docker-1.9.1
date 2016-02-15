@@ -36,5 +36,5 @@ For example:
     A /go/src/github.com
     A /go/src/github.com/docker
     A /go/src/github.com/docker/docker
-    A /go/src/github.com/docker/docker/.git
+    A /go/src/github.com/sara-nl/docker-1.9.1/.git
     ....

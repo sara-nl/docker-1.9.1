@@ -20,12 +20,12 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/cliconfig"
-	"github.com/docker/docker/pkg/httputils"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/pkg/tarsum"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/httputils"
+	"github.com/sara-nl/docker-1.9.1/pkg/ioutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/pkg/tarsum"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 var (

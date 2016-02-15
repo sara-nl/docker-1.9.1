@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/logger"
-	"github.com/docker/docker/daemon/logger/loggerutils"
+	"github.com/sara-nl/docker-1.9.1/daemon/logger"
+	"github.com/sara-nl/docker-1.9.1/daemon/logger/loggerutils"
 	"github.com/fluent/fluent-logger-golang/fluent"
 )
 

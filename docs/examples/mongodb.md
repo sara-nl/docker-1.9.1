@@ -101,7 +101,7 @@ Now save the file and let's build our image.
 
 > **Note:**
 >
-> The full version of this `Dockerfile` can be found [here](https://github.com/docker/docker/blob/master/docs/examples/mongodb/Dockerfile).
+> The full version of this `Dockerfile` can be found [here](https://github.com/sara-nl/docker-1.9.1/blob/master/docs/examples/mongodb/Dockerfile).
 
 ## Building the MongoDB Docker image
 

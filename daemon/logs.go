@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/logger"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/sara-nl/docker-1.9.1/daemon/logger"
+	derr "github.com/sara-nl/docker-1.9.1/errors"
+	"github.com/sara-nl/docker-1.9.1/pkg/stdcopy"
 )
 
 // ContainerLogsConfig holds configs for logging operations. Exists

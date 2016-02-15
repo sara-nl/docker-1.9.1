@@ -8,11 +8,11 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	Cli "github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/pkg/stringutils"
-	"github.com/docker/docker/registry"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/registry"
 )
 
 // ByStars sorts search results in ascending order by number of stars.

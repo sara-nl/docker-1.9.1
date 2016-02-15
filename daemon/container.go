@@ -15,23 +15,23 @@ import (
 	"github.com/opencontainers/runc/libcontainer/label"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/daemon/logger"
-	"github.com/docker/docker/daemon/logger/jsonfilelog"
-	"github.com/docker/docker/daemon/network"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/broadcaster"
-	"github.com/docker/docker/pkg/fileutils"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/pkg/nat"
-	"github.com/docker/docker/pkg/promise"
-	"github.com/docker/docker/pkg/signal"
-	"github.com/docker/docker/pkg/symlink"
-	"github.com/docker/docker/runconfig"
-	"github.com/docker/docker/volume"
+	"github.com/sara-nl/docker-1.9.1/daemon/execdriver"
+	"github.com/sara-nl/docker-1.9.1/daemon/logger"
+	"github.com/sara-nl/docker-1.9.1/daemon/logger/jsonfilelog"
+	"github.com/sara-nl/docker-1.9.1/daemon/network"
+	derr "github.com/sara-nl/docker-1.9.1/errors"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/pkg/archive"
+	"github.com/sara-nl/docker-1.9.1/pkg/broadcaster"
+	"github.com/sara-nl/docker-1.9.1/pkg/fileutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/ioutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/mount"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/pkg/promise"
+	"github.com/sara-nl/docker-1.9.1/pkg/signal"
+	"github.com/sara-nl/docker-1.9.1/pkg/symlink"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
+	"github.com/sara-nl/docker-1.9.1/volume"
 )
 
 var (
@@ -160,7 +160,7 @@ func (container *Container) readHostConfig() error {
 	// Make sure the dns fields are never nil.
 	// New containers don't ever have those fields nil,
 	// but pre created containers can still have those nil values.
-	// See https://github.com/docker/docker/pull/17779
+	// See https://github.com/sara-nl/docker-1.9.1/pull/17779
 	// for a more detailed explanation on why we don't want that.
 	if container.hostConfig.DNS == nil {
 		container.hostConfig.DNS = make([]string, 0)

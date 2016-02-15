@@ -5,13 +5,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/nat"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/pkg/signal"
-	"github.com/docker/docker/pkg/stringutils"
-	"github.com/docker/docker/pkg/units"
+	"github.com/sara-nl/docker-1.9.1/opts"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/pkg/signal"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/units"
 )
 
 var (
@@ -366,7 +366,7 @@ func Parse(cmd *flag.FlagSet, args []string) (*Config, *HostConfig, *flag.FlagSe
 		// Make sure the dns fields are never nil.
 		// New containers don't ever have those fields nil,
 		// but pre created containers can still have those nil values.
-		// See https://github.com/docker/docker/pull/17779
+		// See https://github.com/sara-nl/docker-1.9.1/pull/17779
 		// for a more detailed explanation on why we don't want that.
 		DNS:            flDNS.GetAllOrEmpty(),
 		DNSSearch:      flDNSSearch.GetAllOrEmpty(),

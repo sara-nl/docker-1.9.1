@@ -4,14 +4,14 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types"
-	derr "github.com/docker/docker/errors"
-	"github.com/docker/docker/graph/tags"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/runconfig"
-	"github.com/docker/docker/volume"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	derr "github.com/sara-nl/docker-1.9.1/errors"
+	"github.com/sara-nl/docker-1.9.1/graph/tags"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
+	"github.com/sara-nl/docker-1.9.1/volume"
 	"github.com/opencontainers/runc/libcontainer/label"
 )
 

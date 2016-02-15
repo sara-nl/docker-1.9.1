@@ -7,8 +7,8 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/discovery"
-	"github.com/docker/docker/pkg/tlsconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/discovery"
+	"github.com/sara-nl/docker-1.9.1/pkg/tlsconfig"
 	"github.com/docker/libkv"
 	"github.com/docker/libkv/store"
 	"github.com/docker/libkv/store/consul"

@@ -5,10 +5,10 @@ import (
 	"io"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/cliconfig"
-	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/registry"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/streamformatter"
+	"github.com/sara-nl/docker-1.9.1/registry"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 // ImagePullConfig stores pull configuration.

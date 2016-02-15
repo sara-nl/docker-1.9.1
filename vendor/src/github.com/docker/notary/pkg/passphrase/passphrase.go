@@ -12,7 +12,7 @@ import (
 
 	"path/filepath"
 
-	"github.com/docker/docker/pkg/term"
+	"github.com/sara-nl/docker-1.9.1/pkg/term"
 )
 
 // Retriever is a callback function that should retrieve a passphrase

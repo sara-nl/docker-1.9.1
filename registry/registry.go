@@ -20,10 +20,10 @@ import (
 	"github.com/docker/distribution/registry/api/v2"
 	"github.com/docker/distribution/registry/client"
 	"github.com/docker/distribution/registry/client/transport"
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/pkg/parsers/kernel"
-	"github.com/docker/docker/pkg/tlsconfig"
-	"github.com/docker/docker/pkg/useragent"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers/kernel"
+	"github.com/sara-nl/docker-1.9.1/pkg/tlsconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/useragent"
 )
 
 var (

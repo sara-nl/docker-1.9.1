@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/daemon/network"
-	"github.com/docker/docker/pkg/parsers/filters"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/daemon/network"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers/filters"
 	"github.com/go-check/check"
 )
 

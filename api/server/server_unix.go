@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/sockets"
+	"github.com/sara-nl/docker-1.9.1/pkg/sockets"
 	"github.com/docker/libnetwork/portallocator"
 
 	systemdActivation "github.com/coreos/go-systemd/activation"

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/docker/distribution/registry/client/auth"
-	"github.com/docker/docker/pkg/tlsconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/tlsconfig"
 )
 
 func (s *Service) lookupV2Endpoints(repoName string) (endpoints []APIEndpoint, err error) {

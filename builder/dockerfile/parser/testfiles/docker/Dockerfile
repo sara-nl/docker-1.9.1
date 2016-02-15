@@ -62,7 +62,7 @@ RUN	cd /usr/local/lvm2 && ./configure --enable-static_link && make device-mapper
 # Install Go
 RUN	curl -sSL https://golang.org/dl/go1.3.src.tar.gz | tar -v -C /usr/local -xz
 ENV	PATH	/usr/local/go/bin:$PATH
-ENV	GOPATH	/go:/go/src/github.com/docker/docker/vendor
+ENV	GOPATH	/go:/go/src/github.com/sara-nl/docker-1.9.1/vendor
 RUN	cd /usr/local/go/src && ./make.bash --no-clean 2>&1
 
 # Compile Go for cross compilation

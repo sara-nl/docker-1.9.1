@@ -3,7 +3,7 @@ package graphdriver
 import (
 	"io"
 
-	"github.com/docker/docker/image"
+	"github.com/sara-nl/docker-1.9.1/image"
 )
 
 // NOTE: These interfaces are used for implementing specific features of the Windows

@@ -2,7 +2,7 @@
 
 package main
 
-import "github.com/docker/docker/cli"
+import "github.com/sara-nl/docker-1.9.1/cli"
 
 const daemonUsage = ""
 

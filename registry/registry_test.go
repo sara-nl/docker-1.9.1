@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/docker/distribution/registry/client/transport"
-	"github.com/docker/docker/cliconfig"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
 )
 
 var (

@@ -5,7 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/docker/docker/pkg/tarsum"
+	"github.com/sara-nl/docker-1.9.1/pkg/tarsum"
 )
 
 // Verifier presents a general verification interface to be used with message

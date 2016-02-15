@@ -3,8 +3,8 @@ package builder
 import (
 	"os"
 
-	"github.com/docker/docker/pkg/fileutils"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/pkg/fileutils"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 // DockerIgnoreContext wraps a ModifiableContext to add a method

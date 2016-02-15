@@ -4,8 +4,8 @@ package daemon
 
 import (
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/daemon/graphdriver/aufs"
+	"github.com/sara-nl/docker-1.9.1/daemon/graphdriver"
+	"github.com/sara-nl/docker-1.9.1/daemon/graphdriver/aufs"
 )
 
 // Given the graphdriver ad, if it is aufs, then migrate it.

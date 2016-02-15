@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/docker/docker/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
 )
 
 func TestDecodeContainerConfig(t *testing.T) {

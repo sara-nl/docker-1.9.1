@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/image"
-	"github.com/docker/docker/pkg/stringid"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/daemon/graphdriver"
+	"github.com/sara-nl/docker-1.9.1/image"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringid"
 )
 
 func TestMount(t *testing.T) {

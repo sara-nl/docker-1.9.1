@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/pkg/homedir"
+	"github.com/sara-nl/docker-1.9.1/pkg/homedir"
 )
 
 func TestEmptyConfigDir(t *testing.T) {

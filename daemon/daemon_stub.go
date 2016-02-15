@@ -5,9 +5,9 @@ package daemon
 import (
 	"os"
 
-	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/system"
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/pkg/idtools"
+	"github.com/sara-nl/docker-1.9.1/pkg/system"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 )
 
 func setupRemappedRoot(config *Config) ([]idtools.IDMap, []idtools.IDMap, error) {

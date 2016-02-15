@@ -1,9 +1,9 @@
 package events
 
 import (
-	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/pkg/parsers/filters"
+	"github.com/sara-nl/docker-1.9.1/pkg/jsonmessage"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers/filters"
 )
 
 // Filter can filter out docker events from a stream

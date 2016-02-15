@@ -5,7 +5,7 @@ package utils
 import (
 	"path/filepath"
 
-	"github.com/docker/docker/pkg/longpath"
+	"github.com/sara-nl/docker-1.9.1/pkg/longpath"
 )
 
 func getContextRoot(srcPath string) (string, error) {

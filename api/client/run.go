@@ -8,11 +8,11 @@ import (
 	"runtime"
 
 	"github.com/Sirupsen/logrus"
-	Cli "github.com/docker/docker/cli"
-	"github.com/docker/docker/opts"
-	"github.com/docker/docker/pkg/promise"
-	"github.com/docker/docker/pkg/signal"
-	"github.com/docker/docker/runconfig"
+	Cli "github.com/sara-nl/docker-1.9.1/cli"
+	"github.com/sara-nl/docker-1.9.1/opts"
+	"github.com/sara-nl/docker-1.9.1/pkg/promise"
+	"github.com/sara-nl/docker-1.9.1/pkg/signal"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 	"github.com/docker/libnetwork/resolvconf/dns"
 )
 

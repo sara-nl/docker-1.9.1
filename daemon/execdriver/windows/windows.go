@@ -8,9 +8,9 @@ import (
 	"sync"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/daemon/execdriver"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
 )
 
 // This is a daemon development variable only and should not be

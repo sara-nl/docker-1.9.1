@@ -21,14 +21,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/opts"
-	"github.com/docker/docker/pkg/httputils"
-	"github.com/docker/docker/pkg/integration"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/sockets"
-	"github.com/docker/docker/pkg/stringutils"
-	"github.com/docker/docker/pkg/tlsconfig"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/opts"
+	"github.com/sara-nl/docker-1.9.1/pkg/httputils"
+	"github.com/sara-nl/docker-1.9.1/pkg/integration"
+	"github.com/sara-nl/docker-1.9.1/pkg/ioutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/sockets"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/pkg/tlsconfig"
 	"github.com/go-check/check"
 )
 

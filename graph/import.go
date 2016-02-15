@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/docker/docker/pkg/httputils"
-	"github.com/docker/docker/pkg/progressreader"
-	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/runconfig"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/pkg/httputils"
+	"github.com/sara-nl/docker-1.9.1/pkg/progressreader"
+	"github.com/sara-nl/docker-1.9.1/pkg/streamformatter"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 // Import imports an image, getting the archived layer data either from

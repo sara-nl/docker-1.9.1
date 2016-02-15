@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/cliconfig"
+	"github.com/sara-nl/docker-1.9.1/cliconfig"
 )
 
 // Login tries to register/login to the registry server.

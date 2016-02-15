@@ -24,8 +24,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/docker/docker/builder/dockerfile/command"
-	"github.com/docker/docker/builder/dockerfile/parser"
+	"github.com/sara-nl/docker-1.9.1/builder/dockerfile/command"
+	"github.com/sara-nl/docker-1.9.1/builder/dockerfile/parser"
 )
 
 // Environment variable interpolation will happen on these statements only.

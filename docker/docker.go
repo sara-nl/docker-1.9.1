@@ -5,13 +5,13 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/client"
-	"github.com/docker/docker/autogen/dockerversion"
-	"github.com/docker/docker/cli"
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/reexec"
-	"github.com/docker/docker/pkg/term"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/api/client"
+	"github.com/sara-nl/docker-1.9.1/autogen/dockerversion"
+	"github.com/sara-nl/docker-1.9.1/cli"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/reexec"
+	"github.com/sara-nl/docker-1.9.1/pkg/term"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 func main() {

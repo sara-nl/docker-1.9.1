@@ -5,9 +5,9 @@ package vfs
 import (
 	"testing"
 
-	"github.com/docker/docker/daemon/graphdriver/graphtest"
+	"github.com/sara-nl/docker-1.9.1/daemon/graphdriver/graphtest"
 
-	"github.com/docker/docker/pkg/reexec"
+	"github.com/sara-nl/docker-1.9.1/pkg/reexec"
 )
 
 func init() {

@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/versions/v1p20"
-	"github.com/docker/docker/pkg/integration/checker"
-	"github.com/docker/docker/pkg/stringutils"
+	"github.com/sara-nl/docker-1.9.1/api/types"
+	"github.com/sara-nl/docker-1.9.1/api/types/versions/v1p20"
+	"github.com/sara-nl/docker-1.9.1/pkg/integration/checker"
+	"github.com/sara-nl/docker-1.9.1/pkg/stringutils"
 	"github.com/go-check/check"
 )
 

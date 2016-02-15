@@ -33,16 +33,16 @@ blog](https://blog.docker.com/2015/04/docker-release-1-6/).
 ## Docker Engine 1.6.0 features
 
 For a complete list of engine patches, fixes, and other improvements, see the
-[merge PR on GitHub](https://github.com/docker/docker/pull/11635). You'll also
+[merge PR on GitHub](https://github.com/sara-nl/docker-1.9.1/pull/11635). You'll also
 find [a changelog in the project
-repository](https://github.com/docker/docker/blob/master/CHANGELOG.md).
+repository](https://github.com/sara-nl/docker-1.9.1/blob/master/CHANGELOG.md).
 
 ## Docker Engine 1.6.0 features
 
 For a complete list of engine patches, fixes, and other improvements, see the
-[merge PR on GitHub](https://github.com/docker/docker/pull/11635). You'll also
+[merge PR on GitHub](https://github.com/sara-nl/docker-1.9.1/pull/11635). You'll also
 find [a changelog in the project
-repository](https://github.com/docker/docker/blob/master/CHANGELOG.md).
+repository](https://github.com/sara-nl/docker-1.9.1/blob/master/CHANGELOG.md).
 
 
 | Feature                      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -59,13 +59,13 @@ repository](https://github.com/docker/docker/blob/master/CHANGELOG.md).
 
 This section lists significant known issues present in Docker as of release date.
 For an exhaustive list of issues, see [the issues list on the project
-repository](https://github.com/docker/docker/issues/).
+repository](https://github.com/sara-nl/docker-1.9.1/issues/).
 
 * *Unexpected File Permissions in Containers*
 An idiosyncrasy in AUFS prevented permissions from propagating predictably
 between upper and lower layers. This caused issues with accessing private
 keys, database instances, etc.  This issue was closed in this release:
-[GitHub Issue 783](https://github.com/docker/docker/issues/783).
+[GitHub Issue 783](https://github.com/sara-nl/docker-1.9.1/issues/783).
 
 
 * *Docker Hub incompatible with Safari 8*

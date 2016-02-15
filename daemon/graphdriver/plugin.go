@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/docker/docker/pkg/plugins"
+	"github.com/sara-nl/docker-1.9.1/pkg/plugins"
 )
 
 type pluginClient interface {

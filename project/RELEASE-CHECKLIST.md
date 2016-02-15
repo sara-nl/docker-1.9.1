@@ -351,14 +351,14 @@ git tag -a $VERSION -m $VERSION bump_$VERSION
 git push origin $VERSION
 ```
 
-Once the tag is pushed, go to GitHub and create a [new release](https://github.com/docker/docker/releases/new).
+Once the tag is pushed, go to GitHub and create a [new release](https://github.com/sara-nl/docker-1.9.1/releases/new).
 If the tag is for an RC make sure you check `This is a pre-release` at the bottom of the form.
 
 Select the tag that you just pushed as the version and paste the changelog in the description of the release.
 You can see examples in this two links:
 
-https://github.com/docker/docker/releases/tag/v1.8.0
-https://github.com/docker/docker/releases/tag/v1.8.0-rc3
+https://github.com/sara-nl/docker-1.9.1/releases/tag/v1.8.0
+https://github.com/sara-nl/docker-1.9.1/releases/tag/v1.8.0-rc3
 
 ### 13. Go to github to merge the `bump_$VERSION` branch into release
 

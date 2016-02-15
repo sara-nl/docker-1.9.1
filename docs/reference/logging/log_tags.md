@@ -43,7 +43,7 @@ original container name.
 
 For advanced usage, the generated tag's use [go
 templates](http://golang.org/pkg/text/template/) and the container's [logging
-context](https://github.com/docker/docker/blob/master/daemon/logger/context.go).
+context](https://github.com/sara-nl/docker-1.9.1/blob/master/daemon/logger/context.go).
 
 >**Note**:The driver specific log options `syslog-tag`, `fluentd-tag` and
 >`gelf-tag` still work for backwards compatibility. However, going forward you

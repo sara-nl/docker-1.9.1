@@ -11,9 +11,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/registry/api/errcode"
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/pkg/version"
-	"github.com/docker/docker/utils"
+	"github.com/sara-nl/docker-1.9.1/api"
+	"github.com/sara-nl/docker-1.9.1/pkg/version"
+	"github.com/sara-nl/docker-1.9.1/utils"
 )
 
 // APIVersionKey is the client's requested API version.
@@ -120,7 +120,7 @@ func WriteError(w http.ResponseWriter, err error) {
 	case errcode.Error:
 		// For reference, if you're looking for a particular error
 		// then you can do something like :
-		//   import ( derr "github.com/docker/docker/errors" )
+		//   import ( derr "github.com/sara-nl/docker-1.9.1/errors" )
 		//   if daError.ErrorCode() == derr.ErrorCodeNoSuchContainer { ... }
 
 		daError, _ := err.(errcode.Error)

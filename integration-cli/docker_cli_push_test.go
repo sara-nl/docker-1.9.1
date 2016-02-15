@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/image"
+	"github.com/sara-nl/docker-1.9.1/image"
 	"github.com/go-check/check"
 )
 

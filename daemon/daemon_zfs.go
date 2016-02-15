@@ -4,5 +4,5 @@ package daemon
 
 import (
 	// register the zfs driver
-	_ "github.com/docker/docker/daemon/graphdriver/zfs"
+	_ "github.com/sara-nl/docker-1.9.1/daemon/graphdriver/zfs"
 )

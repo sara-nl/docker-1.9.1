@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/sara-nl/docker-1.9.1/pkg/jsonmessage"
 )
 
 func TestFormatStream(t *testing.T) {

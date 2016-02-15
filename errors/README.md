@@ -47,7 +47,7 @@ When processing an errcode error, if you are looking for a particular
 error then you can do something like:
 
 ```
-import derr "github.com/docker/docker/errors"
+import derr "github.com/sara-nl/docker-1.9.1/errors"
 
 ...
 

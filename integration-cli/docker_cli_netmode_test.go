@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/docker/docker/runconfig"
+	"github.com/sara-nl/docker-1.9.1/runconfig"
 	"github.com/go-check/check"
 )
 

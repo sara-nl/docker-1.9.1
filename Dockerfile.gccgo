@@ -49,7 +49,7 @@ RUN cd /usr/src/lxc \
 	&& make install \
 	&& ldconfig
 
-ENV GOPATH /go:/go/src/github.com/docker/docker/vendor
+ENV GOPATH /go:/go/src/github.com/sara-nl/docker-1.9.1/vendor
 
 # Get the "docker-py" source so we can run their integration tests
 ENV DOCKER_PY_COMMIT 139850f3f3b17357bab5ba3edfb745fb14043764

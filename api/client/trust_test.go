@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/docker/registry"
+	"github.com/sara-nl/docker-1.9.1/registry"
 )
 
 func unsetENV() {

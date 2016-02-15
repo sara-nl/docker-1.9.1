@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/pkg/integration/checker"
+	"github.com/sara-nl/docker-1.9.1/pkg/integration/checker"
 	"github.com/go-check/check"
 )
 

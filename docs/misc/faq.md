@@ -24,8 +24,8 @@ Docker is 100% free. It is open source, so you can use it without paying.
 ### What open source license are you using?
 
 We are using the Apache License Version 2.0, see it here:
-[https://github.com/docker/docker/blob/master/LICENSE](
-https://github.com/docker/docker/blob/master/LICENSE)
+[https://github.com/sara-nl/docker-1.9.1/blob/master/LICENSE](
+https://github.com/sara-nl/docker-1.9.1/blob/master/LICENSE)
 
 ### Does Docker run on Mac OS X or Windows?
 

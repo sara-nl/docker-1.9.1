@@ -13,11 +13,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/pkg/integration/checker"
-	"github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/pkg/sysinfo"
-	"github.com/docker/docker/pkg/units"
+	"github.com/sara-nl/docker-1.9.1/pkg/integration/checker"
+	"github.com/sara-nl/docker-1.9.1/pkg/mount"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
+	"github.com/sara-nl/docker-1.9.1/pkg/sysinfo"
+	"github.com/sara-nl/docker-1.9.1/pkg/units"
 	"github.com/go-check/check"
 	"github.com/kr/pty"
 )

@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	psignal "github.com/docker/docker/pkg/signal"
+	psignal "github.com/sara-nl/docker-1.9.1/pkg/signal"
 )
 
 func setupDumpStackTrap() {

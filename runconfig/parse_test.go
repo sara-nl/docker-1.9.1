@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/nat"
-	"github.com/docker/docker/pkg/parsers"
+	flag "github.com/sara-nl/docker-1.9.1/pkg/mflag"
+	"github.com/sara-nl/docker-1.9.1/pkg/nat"
+	"github.com/sara-nl/docker-1.9.1/pkg/parsers"
 )
 
 func parseRun(args []string) (*Config, *HostConfig, *flag.FlagSet, error) {

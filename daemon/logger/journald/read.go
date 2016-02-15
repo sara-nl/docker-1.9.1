@@ -103,7 +103,7 @@ import (
 	"unsafe"
 
 	"github.com/coreos/go-systemd/journal"
-	"github.com/docker/docker/daemon/logger"
+	"github.com/sara-nl/docker-1.9.1/daemon/logger"
 )
 
 func (s *journald) Close() error {

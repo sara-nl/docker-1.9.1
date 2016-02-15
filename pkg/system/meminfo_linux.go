@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/docker/pkg/units"
+	"github.com/sara-nl/docker-1.9.1/pkg/units"
 )
 
 // ReadMemInfo retrieves memory statistics of the host system and returns a
