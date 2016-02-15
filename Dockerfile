@@ -172,7 +172,7 @@ RUN groupadd -r docker
 RUN useradd --create-home --gid docker unprivilegeduser
 
 VOLUME /var/lib/docker
-WORKDIR /go/src/github.com/docker/docker
+WORKDIR /go/src/github.com/sara-nl/docker-1.9.1
 ENV DOCKER_BUILDTAGS apparmor selinux
 
 # Let us use a .bashrc file
@@ -219,4 +219,4 @@ RUN set -x \
 ENTRYPOINT ["hack/dind"]
 
 # Upload docker source
-COPY . /go/src/github.com/docker/docker
+COPY . /go/src/github.com/sara-nl/docker-1.9.1
